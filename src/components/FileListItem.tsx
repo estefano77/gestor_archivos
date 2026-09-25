@@ -38,7 +38,7 @@ export default function FileListItem({
   });
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 sm:px-4 rounded-xl glass-card border border-slate-800/80 hover:border-slate-700 gap-3 transition-all duration-200">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 sm:px-4 rounded-xl glass-card border border-slate-200/90 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700 gap-3 transition-all duration-200">
       {/* File Info */}
       <div className="flex items-center gap-3.5 min-w-0">
         <div
@@ -57,7 +57,7 @@ export default function FileListItem({
           <div className="flex items-center gap-2">
             <h4
               onClick={() => onPreview(file)}
-              className="text-sm font-semibold text-slate-200 hover:text-indigo-400 cursor-pointer truncate max-w-[200px] sm:max-w-xs md:max-w-md"
+              className="text-sm font-semibold text-slate-800 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer truncate max-w-[200px] sm:max-w-xs md:max-w-md"
             >
               {file.originalName}
             </h4>
@@ -68,17 +68,19 @@ export default function FileListItem({
             </span>
           </div>
 
-          <div className="flex items-center gap-3 text-xs text-slate-400 mt-0.5">
-            <span>{formatBytes(file.size)}</span>
+          <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            <span className="font-medium text-slate-700 dark:text-slate-300">
+              {formatBytes(file.size)}
+            </span>
             <span>•</span>
             <span className="flex items-center gap-1">
-              <Calendar className="w-3 h-3 text-slate-500" />
+              <Calendar className="w-3 h-3 text-slate-400 dark:text-slate-500" />
               {formattedDate}
             </span>
             {file.description && (
               <>
                 <span>•</span>
-                <span className="italic truncate max-w-[150px]">
+                <span className="italic truncate max-w-[150px] text-slate-600 dark:text-slate-400">
                   {file.description}
                 </span>
               </>
@@ -92,7 +94,7 @@ export default function FileListItem({
         <button
           onClick={() => onPreview(file)}
           title="Visualizar archivo"
-          className="p-2 rounded-lg text-slate-300 hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors"
+          className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors cursor-pointer"
         >
           <Eye className="w-4 h-4" />
         </button>
@@ -100,7 +102,7 @@ export default function FileListItem({
         <button
           onClick={() => onDownload(file)}
           title="Descargar archivo"
-          className="p-2 rounded-lg text-slate-300 hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+          className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors cursor-pointer"
         >
           <Download className="w-4 h-4" />
         </button>
@@ -108,7 +110,7 @@ export default function FileListItem({
         <button
           onClick={() => onRename(file)}
           title="Renombrar o editar nota"
-          className="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+          className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
         >
           <Edit2 className="w-4 h-4" />
         </button>
@@ -116,7 +118,7 @@ export default function FileListItem({
         <button
           onClick={() => onDelete(file)}
           title="Eliminar archivo"
-          className="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+          className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors cursor-pointer"
         >
           <Trash2 className="w-4 h-4" />
         </button>

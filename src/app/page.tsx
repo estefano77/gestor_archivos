@@ -183,15 +183,15 @@ export default function DashboardPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-slate-100">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors">
         <Loader2 className="w-10 h-10 animate-spin text-indigo-500 mb-4" />
-        <p className="text-sm text-slate-400">Verificando sesión segura...</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">Verificando sesión segura...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 pb-16">
+    <div className="min-h-screen flex flex-col bg-slate-50/50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-16 transition-colors duration-300">
       {/* Top Navigation */}
       <Navbar
         user={user}
@@ -203,15 +203,15 @@ export default function DashboardPage() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
         {/* Error notification banner if DB error */}
         {errorMessage && (
-          <div className="mb-6 p-4 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+          <div className="mb-6 p-4 rounded-2xl bg-rose-500/10 dark:bg-rose-500/15 border border-rose-500/30 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-rose-500 dark:text-rose-400 shrink-0 mt-0.5" />
             <div className="text-sm">
-              <p className="font-semibold text-rose-300">
+              <p className="font-semibold text-rose-700 dark:text-rose-300">
                 Aviso de conexión con MongoDB
               </p>
-              <p className="text-xs text-rose-400/90 mt-0.5">
+              <p className="text-xs text-rose-600 dark:text-rose-400/90 mt-0.5">
                 {errorMessage}. Asegúrate de que tu variable de entorno{" "}
-                <code className="bg-rose-950/60 px-1 py-0.5 rounded font-mono">
+                <code className="bg-rose-100 dark:bg-rose-950/60 px-1 py-0.5 rounded font-mono">
                   MONGODB_URI
                 </code>{" "}
                 esté configurada con tu instancia local o clúster de MongoDB
@@ -229,28 +229,28 @@ export default function DashboardPage() {
         />
 
         {/* Toolbar: Search, Filters, View Modes */}
-        <div className="glass-panel p-4 rounded-2xl mb-6 border border-slate-800/80 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="glass-panel p-4 rounded-2xl mb-6 border border-slate-200/80 dark:border-slate-800/80 flex flex-col md:flex-row items-center justify-between gap-4">
           {/* Search bar */}
           <div className="relative w-full md:w-80">
-            <Search className="absolute left-3.5 top-3 w-4 h-4 text-slate-500" />
+            <Search className="absolute left-3.5 top-3 w-4 h-4 text-slate-400 dark:text-slate-500" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar por nombre, nota o etiqueta..."
-              className="w-full pl-10 pr-4 py-2 rounded-xl glass-input text-xs sm:text-sm text-slate-100 placeholder:text-slate-500"
+              className="w-full pl-10 pr-4 py-2 rounded-xl glass-input text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
             />
           </div>
 
           {/* Right Toolbar Controls */}
           <div className="flex flex-wrap items-center justify-between md:justify-end gap-3 w-full md:w-auto">
             {/* Category Select Dropdown */}
-            <div className="flex items-center gap-1.5 text-xs text-slate-400">
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
               <Filter className="w-3.5 h-3.5" />
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="bg-slate-900 border border-slate-800 text-slate-200 py-1.5 px-2.5 rounded-xl text-xs focus:outline-none focus:border-indigo-500 cursor-pointer"
+                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 py-1.5 px-2.5 rounded-xl text-xs focus:outline-none focus:border-indigo-500 cursor-pointer shadow-sm"
               >
                 <option value="all">Todas las categorías</option>
                 <option value="pdf">Solo PDFs</option>
@@ -261,12 +261,12 @@ export default function DashboardPage() {
             </div>
 
             {/* Sort Dropdown */}
-            <div className="flex items-center gap-1.5 text-xs text-slate-400">
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
               <ArrowUpDown className="w-3.5 h-3.5" />
               <select
                 value={sortOption}
                 onChange={(e) => setSortOption(e.target.value)}
-                className="bg-slate-900 border border-slate-800 text-slate-200 py-1.5 px-2.5 rounded-xl text-xs focus:outline-none focus:border-indigo-500 cursor-pointer"
+                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 py-1.5 px-2.5 rounded-xl text-xs focus:outline-none focus:border-indigo-500 cursor-pointer shadow-sm"
               >
                 <option value="newest">Más recientes</option>
                 <option value="oldest">Más antiguos</option>
@@ -277,14 +277,14 @@ export default function DashboardPage() {
             </div>
 
             {/* View Mode Toggle */}
-            <div className="flex items-center bg-slate-900 p-1 rounded-xl border border-slate-800">
+            <div className="flex items-center bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
               <button
                 onClick={() => setViewMode("grid")}
                 title="Vista en cuadrícula"
                 className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                   viewMode === "grid"
                     ? "bg-indigo-600 text-white shadow-sm"
-                    : "text-slate-400 hover:text-slate-200"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
                 }`}
               >
                 <LayoutGrid className="w-4 h-4" />
@@ -295,7 +295,7 @@ export default function DashboardPage() {
                 className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                   viewMode === "list"
                     ? "bg-indigo-600 text-white shadow-sm"
-                    : "text-slate-400 hover:text-slate-200"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
                 }`}
               >
                 <ListIcon className="w-4 h-4" />
@@ -312,16 +312,16 @@ export default function DashboardPage() {
           </div>
         ) : files.length === 0 ? (
           /* Empty State */
-          <div className="flex flex-col items-center justify-center p-12 sm:p-16 rounded-3xl glass-panel border border-slate-800/80 text-center my-6">
-            <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mb-4">
+          <div className="flex flex-col items-center justify-center p-12 sm:p-16 rounded-3xl glass-panel border border-slate-200/80 dark:border-slate-800/80 text-center my-6">
+            <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 dark:text-indigo-400 flex items-center justify-center mb-4">
               <FolderOpen className="w-8 h-8" />
             </div>
-            <h3 className="text-lg font-bold text-slate-200">
+            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">
               {searchTerm || selectedCategory !== "all"
                 ? "No se encontraron archivos con ese criterio"
                 : "No has subido ningún archivo todavía"}
             </h3>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-md">
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-md">
               {searchTerm || selectedCategory !== "all"
                 ? "Intenta modificar tu búsqueda o seleccionar otra categoría."
                 : "Comienza a subir tus documentos en PDF, imágenes, archivos de Word (.doc, .docx) o presentaciones de PowerPoint (.ppt, .pptx)."}
