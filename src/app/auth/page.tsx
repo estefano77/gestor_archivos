@@ -14,6 +14,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
+import Footer from "@/components/Footer";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -239,6 +240,9 @@ export default function AuthPage() {
             <span>PDF, Word, Excel, PPT & Imágenes</span>
           </div>
         </div>
+
+        {/* Pie de página */}
+        <Footer bare className="mt-6" />
       </div>
     </div>
   );

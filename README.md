@@ -147,6 +147,7 @@ src/
 │   └── page.tsx                # Dashboard: Gestor de Archivos, Carpetas y Analytics
 ├── components/
 │   ├── Navbar.tsx              # Barra superior con perfil y botón de subida
+│   ├── Footer.tsx              # Pie de página con el copyright y el año actual
 │   ├── StorageStats.tsx        # Métricas y barra de capacidad multicolor
 │   ├── FileUploadModal.tsx     # Zona Drag & Drop + selector/creación de carpeta temática
 │   ├── FileCard.tsx            # Tarjeta para vista de cuadrícula (con etiqueta de carpeta)

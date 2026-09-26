@@ -13,6 +13,7 @@ import DeleteModal from "@/components/DeleteModal";
 import FolderModal from "@/components/FolderModal";
 import MoveFileModal from "@/components/MoveFileModal";
 import DeleteFolderModal from "@/components/DeleteFolderModal";
+import Footer from "@/components/Footer";
 import { FileMetadata, FolderItem, FOLDER_COLORS } from "@/lib/file-utils";
 import {
   Search,
@@ -229,7 +230,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50/50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-[max(4rem,env(safe-area-inset-bottom))] transition-colors duration-300">
+    <div className="min-h-screen flex flex-col bg-slate-50/50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300">
       {/* Top Navigation */}
       <Navbar
         user={user}
@@ -238,7 +239,7 @@ export default function DashboardPage() {
       />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-10">
         {/* Error notification banner if DB error */}
         {errorMessage && (
           <div className="mb-6 p-4 rounded-2xl bg-rose-500/10 dark:bg-rose-500/15 border border-rose-500/30 flex items-start gap-3">
@@ -570,6 +571,9 @@ export default function DashboardPage() {
           </div>
         )}
       </main>
+
+      {/* Pie de página */}
+      <Footer className="mt-auto" />
 
       {/* Modals */}
       <FileUploadModal
