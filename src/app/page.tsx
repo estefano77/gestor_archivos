@@ -14,7 +14,7 @@ import FolderModal from "@/components/FolderModal";
 import MoveFileModal from "@/components/MoveFileModal";
 import DeleteFolderModal from "@/components/DeleteFolderModal";
 import Footer from "@/components/Footer";
-import { FileMetadata, FolderItem, FOLDER_COLORS } from "@/lib/file-utils";
+import { FileMetadata, FolderItem, FOLDER_COLORS, USER_QUOTA_BYTES } from "@/lib/file-utils";
 import {
   Search,
   LayoutGrid,
@@ -220,6 +220,10 @@ export default function DashboardPage() {
     }
   };
 
+  // The server is authoritative over the quota; this only mirrors it so the
+  // upload button can explain itself before the user tries anything.
+  const quotaFull = (stats?.totalBytes ?? 0) >= USER_QUOTA_BYTES;
+
   if (authLoading) {
     return (
       <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors">
@@ -236,6 +240,7 @@ export default function DashboardPage() {
         user={user}
         onOpenUpload={() => setIsUploadOpen(true)}
         onLogout={handleLogout}
+        isQuotaFull={quotaFull}
       />
 
       {/* Main Container */}
@@ -579,6 +584,7 @@ export default function DashboardPage() {
       <FileUploadModal
         isOpen={isUploadOpen}
         folders={folders}
+        usedBytes={stats?.totalBytes ?? 0}
         defaultFolder={
           selectedFolder !== "all" && selectedFolder !== "none"
             ? selectedFolder

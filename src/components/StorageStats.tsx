@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { formatBytes } from "@/lib/file-utils";
+import { formatBytes, QUOTA_WARN_RATIO } from "@/lib/file-utils";
 import {
   FileText,
   Image as ImageIcon,
@@ -36,6 +36,15 @@ export default function StorageStats({
     parseFloat(((totalBytes / quotaBytes) * 100).toFixed(1))
   );
 
+  const remainingBytes = Math.max(0, quotaBytes - totalBytes);
+  const usedRatio = quotaBytes > 0 ? totalBytes / quotaBytes : 0;
+  const quotaFull = usedRatio >= 1;
+  const quotaTextClass = quotaFull
+    ? "text-rose-600 dark:text-rose-400"
+    : usedRatio >= QUOTA_WARN_RATIO
+      ? "text-amber-600 dark:text-amber-400"
+      : "text-slate-500 dark:text-slate-400";
+
   const pdfPercent = totalBytes > 0 ? ((byCategory.pdf?.bytes || 0) / totalBytes) * 100 : 0;
   const imgPercent = totalBytes > 0 ? ((byCategory.image?.bytes || 0) / totalBytes) * 100 : 0;
   const wordPercent = totalBytes > 0 ? ((byCategory.word?.bytes || 0) / totalBytes) * 100 : 0;
@@ -64,8 +73,12 @@ export default function StorageStats({
                 / {formatBytes(quotaBytes)}
               </span>
             </div>
-            <div className="text-[11px] text-slate-500 dark:text-slate-400">
-              {usedPercentage}% cuota estimada
+            <div className={`text-[11px] font-medium ${quotaTextClass}`}>
+              {quotaFull
+                ? "Quota completa · elimina un archivo para liberar espacio"
+                : `${usedPercentage}% usado · te quedan ${formatBytes(
+                    remainingBytes
+                  )}`}
             </div>
           </div>
         </div>

@@ -209,3 +209,24 @@ export function getCategoryMeta(category: FileCategory) {
  */
 export const ACCEPTED_EXTENSIONS =
   ".pdf,.png,.jpg,.jpeg,.gif,.webp,.svg,.doc,.docx,.xls,.xlsx,.ppt,.pptx";
+
+/**
+ * Maximum size of a single file: 15 MB.
+ *
+ * This is a hard technical limit, not a policy choice. The binary is stored
+ * inside the MongoDB document, and a BSON document cannot exceed 16 MB, so
+ * anything closer to that boundary risks a write failure at the driver level.
+ */
+export const MAX_FILE_SIZE = 15 * 1024 * 1024;
+
+/**
+ * Total storage quota per user: 25 MB, counting every file they own.
+ *
+ * Because a single file can be at most `MAX_FILE_SIZE`, a user can for example
+ * store 15 MB + 10 MB and then be out of space. The UI therefore has to show
+ * the remaining megabytes, not just a percentage.
+ */
+export const USER_QUOTA_BYTES = 25 * 1024 * 1024;
+
+/** Quota usage (0-1) above which the storage panel turns amber. */
+export const QUOTA_WARN_RATIO = 0.8;

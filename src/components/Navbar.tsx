@@ -16,9 +16,16 @@ interface NavbarProps {
   user: UserProfile | null;
   onOpenUpload: () => void;
   onLogout: () => void;
+  /** True when the user has filled their storage quota. */
+  isQuotaFull?: boolean;
 }
 
-export default function Navbar({ user, onOpenUpload, onLogout }: NavbarProps) {
+export default function Navbar({
+  user,
+  onOpenUpload,
+  onLogout,
+  isQuotaFull = false,
+}: NavbarProps) {
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -63,11 +70,24 @@ export default function Navbar({ user, onOpenUpload, onLogout }: NavbarProps) {
               <button
                 id="btn-open-upload"
                 onClick={onOpenUpload}
-                className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2.5 sm:py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 active:scale-95 transition-all shadow-md shadow-indigo-500/25 hover:shadow-indigo-500/40 cursor-pointer shrink-0"
+                title={
+                  isQuotaFull
+                    ? "Has alcanzado tu cuota de 25 MB. Elimina algún archivo para liberar espacio."
+                    : "Subir un nuevo archivo"
+                }
+                className={`inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2.5 sm:py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 active:scale-95 transition-all shadow-md shadow-indigo-500/25 hover:shadow-indigo-500/40 cursor-pointer shrink-0 ${
+                  isQuotaFull
+                    ? "from-slate-400 to-slate-500 via-slate-500 shadow-slate-500/20 hover:from-slate-400 hover:to-slate-500"
+                    : ""
+                }`}
               >
                 <UploadCloud className="w-4 h-4 shrink-0" />
-                <span className="hidden sm:inline">Subir Archivo</span>
-                <span className="sm:hidden">Subir</span>
+                <span className="hidden sm:inline">
+                  {isQuotaFull ? "Sin espacio" : "Subir Archivo"}
+                </span>
+                <span className="sm:hidden">
+                  {isQuotaFull ? "Sin espacio" : "Subir"}
+                </span>
               </button>
 
               {/* User Avatar & Info */}

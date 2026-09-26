@@ -19,6 +19,8 @@ import {
   getCategoryMeta,
   ACCEPTED_EXTENSIONS,
   FolderItem,
+  MAX_FILE_SIZE,
+  USER_QUOTA_BYTES,
 } from "@/lib/file-utils";
 import { Folder, FolderPlus } from "lucide-react";
 
@@ -26,6 +28,8 @@ interface FileUploadModalProps {
   isOpen: boolean;
   folders?: FolderItem[];
   defaultFolder?: string;
+  /** Bytes already stored by the current user, used for the quota preview. */
+  usedBytes?: number;
   onClose: () => void;
   onUploadSuccess: () => void;
 }
@@ -34,6 +38,7 @@ export default function FileUploadModal({
   isOpen,
   folders = [],
   defaultFolder = "",
+  usedBytes = 0,
   onClose,
   onUploadSuccess,
 }: FileUploadModalProps) {
@@ -44,6 +49,7 @@ export default function FileUploadModal({
       key={defaultFolder}
       folders={folders}
       defaultFolder={defaultFolder}
+      usedBytes={usedBytes}
       onClose={onClose}
       onUploadSuccess={onUploadSuccess}
     />
@@ -53,11 +59,13 @@ export default function FileUploadModal({
 function FileUploadModalContent({
   folders = [],
   defaultFolder = "",
+  usedBytes = 0,
   onClose,
   onUploadSuccess,
 }: {
   folders?: FolderItem[];
   defaultFolder?: string;
+  usedBytes?: number;
   onClose: () => void;
   onUploadSuccess: () => void;
 }) {
@@ -83,6 +91,9 @@ function FileUploadModalContent({
     }
   };
 
+  const remainingBytes = Math.max(0, USER_QUOTA_BYTES - usedBytes);
+  const quotaFull = remainingBytes === 0;
+
   const validateAndSetFile = (file: File) => {
     setError(null);
     const category = getFileCategory(file.type, file.name);
@@ -92,8 +103,20 @@ function FileUploadModalContent({
       );
       return;
     }
-    if (file.size > 15 * 1024 * 1024) {
-      setError("El archivo supera el tamaño máximo permitido de 15MB.");
+    if (file.size > MAX_FILE_SIZE) {
+      setError(
+        `El archivo supera el tamaño máximo permitido de ${formatBytes(MAX_FILE_SIZE)}.`
+      );
+      return;
+    }
+    if (file.size > remainingBytes) {
+      setError(
+        quotaFull
+          ? "Has alcanzado tu cuota de 25 MB. Elimina algún archivo para liberar espacio."
+          : `No hay espacio suficiente. Quedan ${formatBytes(
+              remainingBytes
+            )} y este archivo ocupa ${formatBytes(file.size)}.`
+      );
       return;
     }
     setSelectedFile(file);
@@ -271,9 +294,24 @@ function FileUploadModalContent({
                   <Presentation className="w-3 h-3" /> PowerPoint
                 </span>
               </div>
-              <span className="text-[11px] text-slate-400 dark:text-slate-500 mt-2 font-mono">
-                Límite: hasta 15 MB
-              </span>
+              <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 mt-2">
+                <span className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">
+                  Límite por archivo: {formatBytes(MAX_FILE_SIZE)}
+                </span>
+                <span
+                  className={`text-[11px] font-semibold ${
+                    quotaFull
+                      ? "text-rose-600 dark:text-rose-400"
+                      : "text-slate-500 dark:text-slate-400"
+                  }`}
+                >
+                  {quotaFull
+                    ? "Quota agotada"
+                    : `Te quedan ${formatBytes(remainingBytes)} de ${formatBytes(
+                        USER_QUOTA_BYTES
+                      )}`}
+                </span>
+              </div>
             </div>
           ) : (
             /* Selected File Preview Box */
@@ -440,7 +478,7 @@ function FileUploadModalContent({
             <button
               id="btn-submit-upload"
               type="submit"
-              disabled={!selectedFile || isUploading}
+              disabled={!selectedFile || isUploading || quotaFull}
               className="inline-flex items-center gap-2 px-5 py-2.5 sm:py-2 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 active:scale-95 disabled:opacity-50 disabled:pointer-events-none transition-all shadow-md shadow-indigo-600/30 cursor-pointer"
             >
               {isUploading ? (

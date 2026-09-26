@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
 import { getRequestUser } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongodb";
 import FileItem from "@/models/FileItem";
 import Folder from "@/models/Folder";
-import { getFileCategory, FileCategory } from "@/lib/file-utils";
+import {
+  getFileCategory,
+  FileCategory,
+  MAX_FILE_SIZE,
+  USER_QUOTA_BYTES,
+  formatBytes,
+} from "@/lib/file-utils";
 
 export const dynamic = "force-dynamic";
-
-// Maximum upload size: 15MB (well within MongoDB 16MB document limit)
-const MAX_FILE_SIZE = 15 * 1024 * 1024;
 
 export async function GET(req: NextRequest) {
   try {
@@ -148,6 +152,32 @@ export async function POST(req: NextRequest) {
     }
 
     await connectToDatabase();
+
+    // Enforce the per-user storage quota. This check is the authoritative one;
+    // the client-side validation in FileUploadModal only gives fast feedback.
+    const userObjectId = new mongoose.Types.ObjectId(user.userId);
+    const [usage] = await FileItem.aggregate([
+      { $match: { userId: userObjectId } },
+      { $group: { _id: null, total: { $sum: "$size" } } },
+    ]);
+    const usedBytes: number = usage?.total || 0;
+
+    if (usedBytes + file.size > USER_QUOTA_BYTES) {
+      const remaining = Math.max(0, USER_QUOTA_BYTES - usedBytes);
+      return NextResponse.json(
+        {
+          error:
+            remaining === 0
+              ? `Has alcanzado tu cuota de ${formatBytes(
+                  USER_QUOTA_BYTES
+                )}. Elimina algún archivo para liberar espacio.`
+              : `No hay espacio suficiente en tu cuota. Quedan ${formatBytes(
+                  remaining
+                )} y este archivo ocupa ${formatBytes(file.size)}. Elimina algún archivo para liberar espacio.`,
+        },
+        { status: 413 }
+      );
+    }
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);

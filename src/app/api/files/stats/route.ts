@@ -3,6 +3,7 @@ import { getRequestUser } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongodb";
 import FileItem from "@/models/FileItem";
 import mongoose from "mongoose";
+import { USER_QUOTA_BYTES } from "@/lib/file-utils";
 
 export const dynamic = "force-dynamic";
 
@@ -54,7 +55,7 @@ export async function GET(req: NextRequest) {
       totalBytes,
       totalFiles,
       byCategory,
-      quotaBytes: 500 * 1024 * 1024, // 500 MB soft quota illustration
+      quotaBytes: USER_QUOTA_BYTES,
     });
   } catch (error: unknown) {
     console.error("Error al calcular estadísticas:", error);
