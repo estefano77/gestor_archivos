@@ -1,31 +1,42 @@
 # CloudVault • Gestor de Archivos Seguro
 
-Aplicación web moderna y robusta construida con **Next.js (App Router)**, **TypeScript**, **Tailwind CSS** y **MongoDB**, lista para desplegarse en **Vercel**. Permite subir, organizar, previsualizar y descargar archivos con **control de acceso estricto por cada usuario**.
+Aplicación web moderna y robusta construida con **Next.js (App Router)**, **TypeScript**, **Tailwind CSS** y **MongoDB**, lista para desplegarse en **Vercel**. Permite subir, organizar en carpetas temáticas, previsualizar y descargar archivos con **control de acceso estricto por cada usuario**.
 
 ---
 
 ## 🚀 Características Principales
 
 - **Formatos Soportados:**
-  - 📄 **PDF**: Visor integrado con zoom, miniaturas, páginas e impresión nativa.
-  - 🖼️ **Imágenes**: PNG, JPG, JPEG, WebP, GIF, SVG con vista previa ampliada y zoom dinámico.
-  - 📝 **Word**: `.docx`, `.doc` con tarjeta de inspección de metadatos y descarga inmediata.
-  - 📊 **PowerPoint**: `.pptx`, `.ppt` con indicador de presentación y descarga optimizada.
+  - 📄 **PDF**: Visor embebido con la barra de herramientas nativa del navegador (miniaturas, páginas, zoom e impresión) y opción de abrir en pestaña nueva.
+  - 🖼️ **Imágenes**: PNG, JPG, JPEG, WebP, GIF, SVG con visor ampliado y zoom del 50% al 300%.
+  - 📝 **Word**: `.docx`, `.doc` con tarjeta de inspección de metadatos (tipo MIME, fecha, nota y etiquetas) y descarga inmediata.
+  - 📗 **Excel**: `.xlsx`, `.xls` con la misma tarjeta de inspección de metadatos y descarga directa.
+  - 📊 **PowerPoint**: `.pptx`, `.ppt` con tarjeta de inspección y descarga directa.
+  - 🚫 Cualquier otro formato se rechaza tanto en el cliente como en la API. Límite de **15 MB** por archivo.
+- **Carpetas Temáticas (carpetas lógicas):**
+  - Crea, renombra y elimina carpetas con **nombre, color (6 opciones) y descripción**.
+  - Asigna un archivo a una carpeta al subirlo, o muévelo después desde el menú de la tarjeta/fila o el modal **"Mover a carpeta"**.
+  - Puedes elegir una carpeta existente o crear una nueva sin salir del modal de subida.
+  - Barra de **chips filtrables** con el conteo de archivos por carpeta y un chip **"Sin carpeta"** para los archivos sueltos.
+  - Cada archivo muestra una **etiqueta 📁 clicable** que filtra el listado por esa carpeta.
+  - Renombrar una carpeta actualiza la carpeta de todos sus archivos; eliminarla borra también su contenido.
 - **Acceso Controlado por Usuario (Autenticación Segura):**
   - Registro e Inicio de sesión con contraseñas encriptadas con **bcryptjs**.
   - Sesiones seguras mediante **JWT (HTTP-Only Cookies)** a través de la librería `jose`.
-  - Cada usuario solo puede ver, buscar, previsualizar, editar y eliminar sus propios archivos.
+  - Cada usuario solo puede ver, buscar, previsualizar, editar, mover y eliminar sus propios archivos.
 - **Almacenamiento Directo en MongoDB:**
   - No requiere configuración compleja de buckets S3 o servicios de terceros.
   - Los archivos se almacenan en MongoDB como buffers binarios optimizados (hasta 15 MB por archivo).
-  - Compatible 100% con las funciones Serverless de **Vercel** (evita problemas de sistemas de archivos de solo lectura).
+  - Las carpetas temáticas son **lógicas**: se guardan como un campo del documento, no como rutas ni directorios del disco.
+  - Compatible 100% con las funciones Serverless de **Vercel**: al no escribir binarios en el sistema de archivos (allí efímero y de solo lectura) no hay dependencias de disco volátil.
 - **Diseño Ultra-Moderno con Tailwind CSS:**
-  - Tema oscuro con efectos de *glassmorphism* y gradientes elegantes.
+  - **Tema claro y oscuro** conmutables, con detección de la preferencia del sistema y persistencia en `localStorage`.
+  - Efectos de *glassmorphism* y gradientes elegantes en ambos temas.
   - Iconos vistosos con **Lucide React**.
   - Zona interactiva Drag & Drop para subir archivos.
   - Selector de vista en **Cuadrícula (Grid)** o **Lista (List)**.
   - Barra de almacenamiento en tiempo real con desglose por tipo de archivo.
-  - Filtro por categoría, buscador en vivo y ordenamiento por fecha, nombre y tamaño.
+  - Filtro por categoría y por carpeta, buscador en vivo (nombre, nota, etiqueta o carpeta) y ordenamiento por fecha, nombre y tamaño.
 
 ---
 
@@ -33,10 +44,12 @@ Aplicación web moderna y robusta construida con **Next.js (App Router)**, **Typ
 
 - **Framework:** Next.js 16 (App Router + Server & Client Components)
 - **Lenguaje:** TypeScript
-- **Estilos:** Tailwind CSS v4
+- **Estilos:** Tailwind CSS v4 (variante `dark` personalizada sobre la clase `.dark`)
 - **Iconografía:** Lucide React
-- **Base de Datos:** MongoDB (Mongoose con Connection Pooling para Serverless)
+- **Base de Datos:** MongoDB (Mongoose 9 con Connection Pooling para Serverless)
+- **Modelo de datos:** usuarios, archivos (buffer binario + campo `folder`) y carpetas temáticas
 - **Autenticación:** JWT (jose) + Cookies seguras + Bcryptjs
+- **Tema claro/oscuro:** React Context + `localStorage` + `prefers-color-scheme`
 - **Plataforma de despliegue recomendada:** Vercel
 
 ---
@@ -107,29 +120,47 @@ git push origin main
 src/
 ├── app/
 │   ├── api/
-│   │   ├── auth/           # Rutas API de Registro, Login, Me y Logout
-│   │   └── files/          # Rutas API de Listado, Subida, Streaming y Descargas
-│   │       ├── [id]/
-│   │       │   ├── preview/   # Transmisión binaria inline para visor PDF/imágenes
-│   │       │   └── download/  # Descarga directa de archivos (Word, PPT, etc.)
-│   │       └── stats/         # Agregaciones de almacenamiento en MongoDB
-│   ├── auth/page.tsx       # Interfaz de Login y Registro
-│   ├── layout.tsx          # Layout principal con tipografías y tema
-│   └── page.tsx            # Dashboard: Gestor de Archivos y Analytics
+│   │   ├── auth/               # Rutas API de Registro, Login, Me y Logout
+│   │   ├── files/              # Rutas API de Listado, Subida, Streaming y Descargas
+│   │   │   ├── route.ts        # GET: listar, filtrar, buscar y ordenar | POST: subir
+│   │   │   ├── [id]/
+│   │   │   │   ├── route.ts    # PATCH: renombrar, editar nota/etiquetas y mover de carpeta | DELETE
+│   │   │   │   ├── preview/    # Transmisión binaria inline para visor PDF/imágenes
+│   │   │   │   └── download/   # Descarga directa de archivos (Word, Excel, PPT, etc.)
+│   │   │   └── stats/          # Agregaciones de almacenamiento en MongoDB
+│   │   └── folders/            # Rutas API de Carpetas Temáticas (carpetas lógicas)
+│   │       ├── route.ts        # GET: carpetas con conteo y tamaño | POST: crear carpeta
+│   │       └── [id]/route.ts   # PATCH: renombrar, cambiar color/descripción | DELETE: con sus archivos
+│   ├── auth/page.tsx           # Interfaz de Login y Registro
+│   ├── layout.tsx              # Layout principal con tipografías, tema y metadatos
+│   ├── globals.css             # Estilos globales, utilidades glass y modo oscuro
+│   └── page.tsx                # Dashboard: Gestor de Archivos, Carpetas y Analytics
 ├── components/
-│   ├── Navbar.tsx          # Barra superior con perfil y botón de subida
-│   ├── StorageStats.tsx    # Métricas y barra de capacidad multicolor
-│   ├── FileUploadModal.tsx # Zona Drag & Drop para subir archivos
-│   ├── FileCard.tsx        # Tarjeta para vista de cuadrícula
-│   ├── FileListItem.tsx    # Fila para vista de lista
-│   ├── FilePreviewModal.tsx# Visor modal (PDF interactivo, fotos, docs)
-│   ├── RenameModal.tsx     # Modal para editar nombre y notas
-│   └── DeleteModal.tsx     # Modal de confirmación de eliminación segura
+│   ├── Navbar.tsx              # Barra superior con perfil y botón de subida
+│   ├── StorageStats.tsx        # Métricas y barra de capacidad multicolor
+│   ├── FileUploadModal.tsx     # Zona Drag & Drop + selector/creación de carpeta temática
+│   ├── FileCard.tsx            # Tarjeta para vista de cuadrícula (con etiqueta de carpeta)
+│   ├── FileListItem.tsx        # Fila para vista de lista (con etiqueta de carpeta)
+│   ├── FilePreviewModal.tsx    # Visor modal (PDF interactivo, fotos, docs)
+│   ├── RenameModal.tsx         # Modal para editar nombre, notas, etiquetas y carpeta
+│   ├── MoveFileModal.tsx       # Modal para mover un archivo entre carpetas temáticas
+│   ├── FolderModal.tsx         # Modal para crear/editar carpeta (nombre, color, descripción)
+│   ├── DeleteFolderModal.tsx   # Confirmación de eliminación de carpeta y su contenido
+│   ├── DeleteModal.tsx         # Modal de confirmación de eliminación segura
+│   ├── ThemeProvider.tsx       # Contexto de tema claro/oscuro con persistencia
+│   └── ThemeToggle.tsx         # Botón de cambio de tema en la barra superior
 ├── lib/
-│   ├── mongodb.ts          # Conexión persistente en caché para Serverless/Vercel
-│   ├── auth.ts             # Creación y verificación de tokens JWT con jose
-│   └── file-utils.ts       # Mapeo de categorías, iconos y formateo de bytes
+│   ├── mongodb.ts              # Conexión persistente en caché para Serverless/Vercel
+│   ├── model-registry.ts       # Registro de modelos Mongoose seguro ante hot-reload
+│   ├── auth.ts                 # Creación y verificación de tokens JWT con jose
+│   └── file-utils.ts           # Categorías, colores de carpetas, iconos y formateo de bytes
 └── models/
-    ├── User.ts             # Modelo Mongoose de usuarios
-    └── FileItem.ts         # Modelo Mongoose de archivos con buffers binarios
+    ├── User.ts                 # Modelo Mongoose de usuarios
+    ├── FileItem.ts             # Modelo Mongoose de archivos (buffer binario + campo `folder`)
+    └── Folder.ts               # Modelo Mongoose de carpetas temáticas (nombre, color, descripción)
 ```
+
+> **Nota sobre `model-registry.ts`:** los modelos se registran a través de este helper en lugar
+> de `mongoose.models.X || mongoose.model(...)`. La caché de `mongoose.models` sobrevive a las
+> recargas de módulos de Next.js, por lo que al cambiar un esquema el proceso seguiría usando el
+> modelo viejo y Mongoose (modo `strict`) descartaría los campos nuevos **en silencio**.
