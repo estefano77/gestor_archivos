@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { formatBytes, QUOTA_WARN_RATIO } from "@/lib/file-utils";
+import { formatBytes, formatQuotaBytes, QUOTA_WARN_RATIO } from "@/lib/file-utils";
 import {
   FileText,
   Image as ImageIcon,
@@ -76,7 +76,7 @@ export default function StorageStats({
             <div className={`text-[11px] font-medium ${quotaTextClass}`}>
               {quotaFull
                 ? "Quota completa · elimina un archivo para liberar espacio"
-                : `${usedPercentage}% usado · te quedan ${formatBytes(
+                : `${usedPercentage}% usado · te quedan ${formatQuotaBytes(
                     remainingBytes
                   )}`}
             </div>

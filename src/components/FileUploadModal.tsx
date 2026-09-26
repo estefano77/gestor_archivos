@@ -21,6 +21,7 @@ import {
   FolderItem,
   MAX_FILE_SIZE,
   USER_QUOTA_BYTES,
+  formatQuotaBytes,
 } from "@/lib/file-utils";
 import { Folder, FolderPlus } from "lucide-react";
 
@@ -110,12 +111,20 @@ function FileUploadModalContent({
       return;
     }
     if (file.size > remainingBytes) {
+      // Mismo criterio y mismo texto que el servidor, para que la validacion
+      // anticipada y el error real no se contradigan.
       setError(
         quotaFull
-          ? "Has alcanzado tu cuota de 25 MB. Elimina algún archivo para liberar espacio."
-          : `No hay espacio suficiente. Quedan ${formatBytes(
+          ? `Has alcanzado tu cuota de ${formatQuotaBytes(
+              USER_QUOTA_BYTES
+            )}. Elimina algún archivo para liberar espacio.`
+          : `Este archivo ocupa ${formatQuotaBytes(
+              file.size
+            )} y solo te quedan ${formatQuotaBytes(
               remainingBytes
-            )} y este archivo ocupa ${formatBytes(file.size)}.`
+            )}: te faltan ${formatQuotaBytes(
+              file.size - remainingBytes
+            )}. Elimina algún archivo para liberar espacio.`
       );
       return;
     }
@@ -307,9 +316,9 @@ function FileUploadModalContent({
                 >
                   {quotaFull
                     ? "Quota agotada"
-                    : `Te quedan ${formatBytes(remainingBytes)} de ${formatBytes(
-                        USER_QUOTA_BYTES
-                      )}`}
+                    : `Te quedan ${formatQuotaBytes(
+                        remainingBytes
+                      )} de ${formatQuotaBytes(USER_QUOTA_BYTES)}`}
                 </span>
               </div>
             </div>

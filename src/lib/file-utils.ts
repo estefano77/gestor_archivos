@@ -143,6 +143,28 @@ export function formatBytes(bytes: number, decimals = 2): string {
 }
 
 /**
+ * Formats a byte count for quota messages.
+ *
+ * `formatBytes` rounds to the nearest value, which is fine for a label but
+ * actively misleading when comparing a file against the space that is left:
+ * 9.996 MB would be shown as "10 MB", and a file of exactly 10 MB would then
+ * look like it fits in 10 MB. It does not. This helper always rounds *down*,
+ * so the number shown is always space that genuinely exists.
+ */
+export function formatQuotaBytes(bytes: number): string {
+  if (bytes <= 0) return "0 MB";
+
+  const mb = bytes / (1024 * 1024);
+  if (mb < 1) {
+    const kb = bytes / 1024;
+    return `${kb < 0.01 ? "<0.01" : Math.floor(kb * 100) / 100} KB`;
+  }
+
+  // Math.floor y no toFixed: 9.996 debe leerse 9.99, no 10.
+  return `${Math.floor(mb * 100) / 100} MB`;
+}
+
+/**
  * Returns user-friendly UI meta info per category
  */
 export function getCategoryMeta(category: FileCategory) {

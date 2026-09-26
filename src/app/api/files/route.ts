@@ -9,7 +9,7 @@ import {
   FileCategory,
   MAX_FILE_SIZE,
   USER_QUOTA_BYTES,
-  formatBytes,
+  formatQuotaBytes,
 } from "@/lib/file-utils";
 
 export const dynamic = "force-dynamic";
@@ -164,16 +164,23 @@ export async function POST(req: NextRequest) {
 
     if (usedBytes + file.size > USER_QUOTA_BYTES) {
       const remaining = Math.max(0, USER_QUOTA_BYTES - usedBytes);
+      // Se dice también cuánto falta, que es el dato accionable: "no cabe" sin
+      // más deja al usuario probando archivos a ciegas.
+      const shortfall = file.size - remaining;
       return NextResponse.json(
         {
           error:
             remaining === 0
-              ? `Has alcanzado tu cuota de ${formatBytes(
+              ? `Has alcanzado tu cuota de ${formatQuotaBytes(
                   USER_QUOTA_BYTES
                 )}. Elimina algún archivo para liberar espacio.`
-              : `No hay espacio suficiente en tu cuota. Quedan ${formatBytes(
+              : `Este archivo ocupa ${formatQuotaBytes(
+                  file.size
+                )} y solo te quedan ${formatQuotaBytes(
                   remaining
-                )} y este archivo ocupa ${formatBytes(file.size)}. Elimina algún archivo para liberar espacio.`,
+                )}: te faltan ${formatQuotaBytes(
+                  shortfall
+                )}. Elimina algún archivo para liberar espacio.`,
         },
         { status: 413 }
       );
