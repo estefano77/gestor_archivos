@@ -12,7 +12,15 @@ import {
   QUOTA_WARN_RATIO,
 } from "@/lib/file-utils";
 
-export type HelpBlock =
+/**
+ * `when` marca un bloque que solo aplica a un modo de acceso concreto
+ * ("local" o "google"). Se filtran en la pagina del manual para que no se
+ * documente un botón que la aplicación no tiene.
+ */
+export type HelpBlock = {
+  kind: "p" | "steps" | "list" | "table" | "callout" | "image";
+  when?: "local" | "google";
+} & (
   | { kind: "p"; text: string }
   | { kind: "steps"; items: string[] }
   | { kind: "list"; items: string[] }
@@ -23,7 +31,8 @@ export type HelpBlock =
       title: string;
       text: string;
     }
-  | { kind: "image"; src: string; alt: string; caption: string };
+  | { kind: "image"; src: string; alt: string; caption: string }
+);
 
 export interface HelpSection {
   id: string;
@@ -63,7 +72,13 @@ export const HELP_SECTIONS: HelpSection[] = [
         text: `CloudVault guarda tus archivos en un espacio privado. Solo tú puedes ver lo que subes: ninguna otra cuenta tiene acceso a tus documentos, ni siquiera alguien que conozca tu correo.`,
       },
       {
+        kind: "p",
+        when: "google",
+        text: "Con Google no hay que registrarse. **Tu cuenta se crea sola la primera vez que entras**: eliges una cuenta de Google y ya estás dentro. No hay formulario ni que recordar una contraseña.",
+      },
+      {
         kind: "steps",
+        when: "local",
         items: [
           "Abre la página de acceso y pulsa la pestaña **Crear Cuenta**.",
           "Escribe tu **Nombre Completo**, tu **Correo Electrónico** y una **Contraseña**.",
@@ -73,6 +88,7 @@ export const HELP_SECTIONS: HelpSection[] = [
       },
       {
         kind: "image",
+        when: "local",
         src: "/help/02-crear-cuenta.png",
         alt: "Formulario de creación de cuenta con los campos nombre, correo y contraseña",
         caption:
@@ -81,8 +97,16 @@ export const HELP_SECTIONS: HelpSection[] = [
       {
         kind: "callout",
         tone: "info",
+        when: "local",
         title: "Tu correo es tu usuario",
         text: "No se puede cambiar después. Si te registras con `nombre@correo.com` y luego entras con `NOMBRE@correo.com`, CloudVault lo reconoce como la misma cuenta (no distingue mayúsculas).",
+      },
+      {
+        kind: "callout",
+        tone: "info",
+        when: "google",
+        title: "Tu correo lo decide Google",
+        text: "CloudVault toma el correo de tu cuenta de Google. Si algún día lo cambias allí, entrando con Google se actualizará aquí también.",
       },
     ],
   },
@@ -94,13 +118,32 @@ export const HELP_SECTIONS: HelpSection[] = [
     blocks: [
       {
         kind: "p",
-        text: "Hay dos formas de entrar. Con **correo y contraseña**, escribiendo tus datos y pulsando **Acceder a mi Bóveda**. O con **cuenta de Google**, pulsando el botón «Continuar con Google» que aparece debajo.",
+        text: "CloudVault guarda tu sesión durante 7 días. Entra por la vía que tengas disponible:",
+      },
+      {
+        kind: "p",
+        when: "local",
+        text: "**Correo y contraseña.** Escribe tu correo y tu contraseña en el formulario y pulsa **Acceder a mi Bóveda**. Si no tienes cuenta, la pestaña **Crear Cuenta** te da acceso con el correo que quieras.",
+      },
+      {
+        kind: "p",
+        when: "google",
+        text: "**Cuenta de Google.** Pulsa «Continuar con Google», elige una cuenta y entras directamente. No necesitas contraseña de CloudVault.",
       },
       {
         kind: "image",
+        when: "local",
         src: "/help/01-iniciar-sesion.png",
         alt: "Pantalla de inicio de sesión de CloudVault",
         caption: "La pantalla de acceso. Tu sesión recuerda quién eres durante 7 días.",
+      },
+      {
+        kind: "image",
+        when: "google",
+        src: "/help/17-solo-google.png",
+        alt: "Pantalla de acceso de CloudVault reducida al botón de Google",
+        caption:
+          "Cuando la aplicación es solo de Google, la pantalla se queda únicamente con el botón: sin formulario y sin pestañas.",
       },
       {
         kind: "list",
@@ -113,20 +156,37 @@ export const HELP_SECTIONS: HelpSection[] = [
       {
         kind: "callout",
         tone: "info",
+        when: "google",
         title: "Entrar con Google",
-        text: "Al pulsar «Continuar con Google» eliges una cuenta de Google y entras directamente. Google solo te enseña el nombre y el correo, nunca tus archivos. Si ya tenías una cuenta en CloudVault con ese mismo correo, **entras en ella** con todos sus archivos y su espacio: no se crea una cuenta aparte.",
-      },
-      {
-        kind: "callout",
-        tone: "warning",
-        title: "Las cuentas de Google no tienen contraseña",
-        text: "Si entraste con Google, CloudVault no guarda ninguna contraseña tuya. Si en el formulario de acceso escribes el correo de una cuenta de Google con cualquier contraseña, CloudVault te avisará de que debes usar el botón de Google. Esa es la forma correcta de entrar.",
+        text: "Al pulsar «Continuar con Google» eliges una cuenta y entras directamente. **Google solo comparte tu nombre y tu correo**: nunca tus archivos de Drive, ni tus contactos, ni el contenido de tu correo. CloudVault pide lo mínimo para saber quién eres.",
       },
       {
         kind: "callout",
         tone: "info",
+        when: "google",
+        title: "Qué pasa si ya tenías una cuenta con contraseña",
+        text: "Si te habías registrado antes con ese mismo correo, **entras en esa cuenta**: verás tus archivos y tu espacio tal como los tenías. No se crea una cuenta nueva ni se duplica nada. Solo se enlaza tu acceso con Google a partir de ese momento.",
+      },
+      {
+        kind: "callout",
+        tone: "warning",
+        when: "google",
+        title: "Las cuentas de Google no tienen contraseña",
+        text: "CloudVault no guarda ninguna contraseña de las cuentas que entran con Google. Si en el formulario de acceso escribes el correo de una de esas cuentas con cualquier contraseña, CloudVault te avisará de que debes usar el botón de Google. Esa es la forma correcta de entrar, y no significa que tu cuenta esté dañada.",
+      },
+      {
+        kind: "callout",
+        tone: "warning",
+        when: "google",
+        title: "No se puede volver a entrar con contraseña",
+        text: "Una vez que entras con Google, esa cuenta queda ligada a Google. Si después quieres usar correo y contraseña en lugar de Google, **no hay forma de hacerlo desde la aplicación**: hay que pedírselo a quien administre la instalación. Tenlo en cuenta antes de elegir este método si crees que vas a cambiar de opinión.",
+      },
+      {
+        kind: "callout",
+        tone: "info",
+        when: "local",
         title: "¿Olvidaste tu contraseña?",
-        text: "CloudVault no envía correos ni permite recuperarlas desde la aplicación. Si no recuerdas la contraseña de una cuenta creada con correo, tendrás que registrar una cuenta nueva. Por eso conviene usar una que se te quede. Las cuentas de Google no tienen ese problema: puedes recuperarlas desde Google.",
+        text: "CloudVault no envía correos ni permite recuperarlas desde la aplicación. Si no recuerdas la contraseña de una cuenta creada con correo, tendrás que registrar una cuenta nueva. Por eso conviene usar una que se te quede.",
       },
     ],
   },
@@ -561,6 +621,31 @@ export const HELP_SECTIONS: HelpSection[] = [
             "Entra con tu contraseña, o usa otro correo.",
           ],
           [
+            "«Esta cuenta se creó con Google»",
+            "Entraste con Google, así que esa cuenta no tiene contraseña guardada.",
+            "Pulsa **Continuar con Google**. No hay que hacer nada más: la cuenta está intacta.",
+          ],
+          [
+            "«El acceso con contraseña está deshabilitado»",
+            "La aplicación está configurada para entrar solo con Google.",
+            "Pulsa **Continuar con Google**. Si tenías una cuenta creada con contraseña, necesita usar un correo de Google.",
+          ],
+          [
+            "«El inicio de sesión con Google está deshabilitado»",
+            "La aplicación está configurada para entrar solo con correo y contraseña.",
+            "Usa el formulario de acceso. Necesitas una cuenta creada previamente.",
+          ],
+          [
+            "Google dice que la cuenta no está verificada",
+            "Esa cuenta de Google aún no confirmó su correo.",
+            "Confirma el correo desde Google y vuelve a intentarlo.",
+          ],
+          [
+            "Volví a la pantalla de acceso sin querer",
+            "Google te devolvió aquí después de darte por identificada.",
+            "Vuelve a pulsar **Continuar con Google**: la cuenta ya existe y no se duplicará.",
+          ],
+          [
             "Aviso de conexión a la base de datos",
             "La conexión a MongoDB se interrumpió.",
             "Recarga la página. Si sigue, avisa a quien administer la instalación.",
@@ -576,4 +661,17 @@ export const HELP_SECTIONS: HelpSection[] = [
   },
 ];
 
-export const HELP_FOOTER_NOTE = `Este manual describe el comportamiento de CloudVault con una cuota de ${QUOTA_MB} MB por cuenta y un máximo de ${MAX_MB} MB por archivo.`;
+/**
+ * Nota al pie. Menciona el método de acceso solo cuando la aplicación ofrece
+ * más de uno, porque en modo único la persona que lee no tiene nada que elegir.
+ */
+export function buildFooterNote(localEnabled: boolean, googleEnabled: boolean) {
+  const acceso =
+    localEnabled && googleEnabled
+      ? " Puedes entrar con correo y contraseña o con tu cuenta de Google."
+      : googleEnabled
+        ? " El acceso es únicamente con cuenta de Google."
+        : " El acceso es únicamente con correo y contraseña.";
+
+  return `Este manual describe el comportamiento de CloudVault con una cuota de ${QUOTA_MB} MB por cuenta y un máximo de ${MAX_MB} MB por archivo.${acceso}`;
+}

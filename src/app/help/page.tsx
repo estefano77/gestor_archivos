@@ -25,7 +25,12 @@ import {
 import ThemeToggle from "@/components/ThemeToggle";
 import Footer from "@/components/Footer";
 import HelpImage from "@/components/HelpImage";
-import { HELP_SECTIONS, HELP_FOOTER_NOTE, HelpBlock } from "@/lib/help-content";
+import { HELP_SECTIONS, buildFooterNote, HelpBlock } from "@/lib/help-content";
+import {
+  parseAuthMode,
+  AUTH_MODE_LOCAL_ONLY,
+  AUTH_MODE_GOOGLE_ONLY,
+} from "@/lib/auth-config";
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   UserPlus,
@@ -194,6 +199,19 @@ function Block({ block }: { block: HelpBlock }) {
 export default function HelpPage() {
   const [activeId, setActiveId] = useState(HELP_SECTIONS[0].id);
 
+  // El manual se adapta al modo de acceso: si Google está deshabilitado no
+  // tiene sentido documentar un botón que no existe, y al revés.
+  const mode = parseAuthMode(process.env.NEXT_PUBLIC_AUTH_MODE);
+  const localEnabled = mode === AUTH_MODE_LOCAL_ONLY || mode === 2;
+  const googleEnabled = mode === AUTH_MODE_GOOGLE_ONLY || mode === 2;
+
+  const visibleBlocks = (blocks: HelpBlock[]) =>
+    blocks.filter((block) => {
+      if (block.when === "local") return localEnabled;
+      if (block.when === "google") return googleEnabled;
+      return true;
+    });
+
   // Scroll-spy: resalta en el indice la seccion que se esta leyendo.
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -340,7 +358,7 @@ export default function HelpPage() {
                     </div>
 
                     <div className="space-y-4">
-                      {section.blocks.map((block, i) => (
+                      {visibleBlocks(section.blocks).map((block, i) => (
                         <Block key={i} block={block} />
                       ))}
                     </div>
@@ -350,7 +368,7 @@ export default function HelpPage() {
             })}
 
             <p className="mt-6 text-xs text-slate-400 dark:text-slate-500 text-center px-4">
-              {HELP_FOOTER_NOTE}
+              {buildFooterNote(localEnabled, googleEnabled)}
             </p>
           </div>
         </div>
