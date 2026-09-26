@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -18,6 +18,34 @@ import {
 import ThemeToggle from "@/components/ThemeToggle";
 import Footer from "@/components/Footer";
 
+/**
+ * Botón oficial de Google. El SVG va incrustado porque el logotipo de Google
+ * tiene requisitos de marca sobre tamaño, color y espaciado que una fuente de
+ * iconos no reproduce.
+ */
+function GoogleLogo({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="#4285F4"
+        d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47a5.54 5.54 0 0 1-2.4 3.63v3h3.87c2.27-2.09 3.55-5.17 3.55-8.87z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 24c3.24 0 5.96-1.08 7.94-2.91l-3.87-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09A12 12 0 0 0 12 24z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.27 14.29a7.2 7.2 0 0 1 0-4.58V6.62H1.29a12 12 0 0 0 0 10.76l3.98-3.09z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0A12 12 0 0 0 1.29 6.62l3.98 3.09C6.22 6.87 8.87 4.75 12 4.75z"
+      />
+    </svg>
+  );
+}
+
 export default function AuthPage() {
   const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
@@ -26,6 +54,24 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // El botón solo aparece si hay credenciales configuradas. El cliente se
+  // limita a una bandera pública: ni el Client ID ni el Secret salen de aquí.
+  const googleEnabled = process.env.NEXT_PUBLIC_GOOGLE_ENABLED === "true";
+
+  // La callback de Google vuelve a esta página con ?error=... cuando algo falla.
+  // Leer la URL en un efecto es el caso correcto: la URL es un sistema externo
+  // que solo existe en el cliente. La misma regla ya se silencia en
+  // ThemeProvider.
+  useEffect(() => {
+    const motivo = new URLSearchParams(window.location.search).get("error");
+    if (motivo) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setError(motivo);
+      // Se limpia la URL para que al recargar no vuelva a salir el aviso.
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -217,6 +263,32 @@ export default function AuthPage() {
               )}
             </button>
           </form>
+
+          {/* Inicio de sesión con Google */}
+          {googleEnabled && (
+            <>
+              <div className="flex items-center gap-3 my-5">
+                <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+                <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500">
+                  o
+                </span>
+                <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+              </div>
+
+              {/* `state` de href: un <a> plano hace una navegación completa,
+                  que es justo lo que necesita el viaje OAuth hacia Google. */}
+              <a
+                href="/api/auth/google"
+                id="btn-google"
+                className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-[0.98] transition-all shadow-sm"
+              >
+                <GoogleLogo className="w-[18px] h-[18px] shrink-0" />
+                <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                  Continuar con Google
+                </span>
+              </a>
+            </>
+          )}
 
           {/* Quick Demo Fill Button */}
           <div className="mt-5 pt-5 border-t border-slate-200 dark:border-slate-800 text-center">

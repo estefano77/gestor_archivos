@@ -29,6 +29,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Una cuenta creada con Google no tiene contraseña guardada. Sin este
+    // comprobación, `bcrypt.compare` recibiría `undefined` y reventaría con un
+    // 500 en lugar de un mensaje utilizable.
+    if (!user.password) {
+      return NextResponse.json(
+        {
+          error:
+            "Esta cuenta se creó con Google. Inicia sesión con el botón de Google.",
+        },
+        { status: 401 }
+      );
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return NextResponse.json(

@@ -94,7 +94,7 @@ export const HELP_SECTIONS: HelpSection[] = [
     blocks: [
       {
         kind: "p",
-        text: "Para volver a tu bóveda, escribe tu correo y contraseña en la pantalla de acceso y pulsa **Acceder a mi Bóveda**.",
+        text: "Hay dos formas de entrar. Con **correo y contraseña**, escribiendo tus datos y pulsando **Acceder a mi Bóveda**. O con **cuenta de Google**, pulsando el botón «Continuar con Google» que aparece debajo.",
       },
       {
         kind: "image",
@@ -113,8 +113,20 @@ export const HELP_SECTIONS: HelpSection[] = [
       {
         kind: "callout",
         tone: "info",
+        title: "Entrar con Google",
+        text: "Al pulsar «Continuar con Google» eliges una cuenta de Google y entras directamente. Google solo te enseña el nombre y el correo, nunca tus archivos. Si ya tenías una cuenta en CloudVault con ese mismo correo, **entras en ella** con todos sus archivos y su espacio: no se crea una cuenta aparte.",
+      },
+      {
+        kind: "callout",
+        tone: "warning",
+        title: "Las cuentas de Google no tienen contraseña",
+        text: "Si entraste con Google, CloudVault no guarda ninguna contraseña tuya. Si en el formulario de acceso escribes el correo de una cuenta de Google con cualquier contraseña, CloudVault te avisará de que debes usar el botón de Google. Esa es la forma correcta de entrar.",
+      },
+      {
+        kind: "callout",
+        tone: "info",
         title: "¿Olvidaste tu contraseña?",
-        text: "CloudVault no envía correos ni permite recuperarlas desde la aplicación. Si no recuerdas la contraseña, tendrás que registrar una cuenta nueva. Por eso conviene usar una que se te quede.",
+        text: "CloudVault no envía correos ni permite recuperarlas desde la aplicación. Si no recuerdas la contraseña de una cuenta creada con correo, tendrás que registrar una cuenta nueva. Por eso conviene usar una que se te quede. Las cuentas de Google no tienen ese problema: puedes recuperarlas desde Google.",
       },
     ],
   },

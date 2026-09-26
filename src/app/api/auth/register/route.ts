@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import { connectToDatabase } from "@/lib/mongodb";
 import User from "@/models/User";
@@ -95,9 +96,21 @@ export async function POST(req: NextRequest) {
 
     return response;
   } catch (error: unknown) {
+    // Un fallo de validación es un error del cliente, no del servidor: se
+    // responde 400 con los mensajes del esquema en vez de un 500. Además evita
+    // filtrar al cliente el texto crudo del error de Mongoose.
+    if (error instanceof mongoose.Error.ValidationError) {
+      const mensajes = Object.values(error.errors).map((e) => e.message);
+      return NextResponse.json(
+        { error: mensajes.join(". ") || "Los datos no son válidos." },
+        { status: 400 }
+      );
+    }
+
     console.error("Error en registro:", error);
-    const message =
-      error instanceof Error ? error.message : "Error interno del servidor";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Error interno del servidor" },
+      { status: 500 }
+    );
   }
 }
