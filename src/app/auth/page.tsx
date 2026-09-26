@@ -66,9 +66,9 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center p-4 relative overflow-hidden transition-colors duration-300">
+    <div className="min-h-[100dvh] flex flex-col justify-center items-center p-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(3.5rem,env(safe-area-inset-top))] sm:pt-4 relative overflow-hidden transition-colors duration-300">
       {/* Floating Theme Toggle in top-right */}
-      <div className="absolute top-5 right-5 z-20">
+      <div className="absolute top-[max(1.25rem,env(safe-area-inset-top))] right-4 sm:right-5 z-20">
         <ThemeToggle />
       </div>
 
@@ -101,7 +101,7 @@ export default function AuthPage() {
                 setIsLogin(true);
                 setError(null);
               }}
-              className={`py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+              className={`py-3 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                 isLogin
                   ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
                   : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
@@ -115,7 +115,7 @@ export default function AuthPage() {
                 setIsLogin(false);
                 setError(null);
               }}
-              className={`py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+              className={`py-3 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                 !isLogin
                   ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
                   : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
@@ -220,7 +220,7 @@ export default function AuthPage() {
             <button
               type="button"
               onClick={fillDemoCredentials}
-              className="inline-flex items-center gap-1.5 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium py-1 px-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium py-3 sm:py-1 px-3 sm:px-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors cursor-pointer"
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
               <span>Llenar datos de prueba para ingresar rápido</span>
@@ -236,7 +236,7 @@ export default function AuthPage() {
           </div>
           <div className="flex items-center gap-1.5">
             <FileCheck className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-            <span>PDF, Word, PPT & Imágenes</span>
+            <span>PDF, Word, Excel, PPT & Imágenes</span>
           </div>
         </div>
       </div>

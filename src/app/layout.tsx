@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -17,6 +17,22 @@ export const metadata: Metadata = {
   title: "CloudVault • Gestor de Archivos Seguro",
   description:
     "Sube, organiza, visualiza y gestiona tus documentos PDF, imágenes, archivos de Word, hojas de cálculo de Excel y presentaciones de PowerPoint con control de acceso por usuario y base de datos MongoDB.",
+};
+
+/**
+ * `viewportFit: "cover"` permite que el fondo llegue a los bordes de la pantalla
+ * del iPhone (isla dinámica y indicador de inicio incluidos). A cambio, las zonas
+ * seguras se compensan con `env(safe-area-inset-*)` en la barra superior y en la
+ * parte inferior.
+ */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f8fafc" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f172a" },
+  ],
 };
 
 export default function RootLayout({

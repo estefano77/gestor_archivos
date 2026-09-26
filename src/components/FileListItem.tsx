@@ -83,7 +83,7 @@ export default function FileListItem({
                   e.stopPropagation();
                   onSelectFolder?.(file.folder!);
                 }}
-                className="inline-flex items-center gap-1 text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50/90 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 px-1.5 py-0.5 rounded-md border border-indigo-200/80 dark:border-indigo-800/80 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1 text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50/90 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 px-2 py-1.5 sm:py-0.5 rounded-md border border-indigo-200/80 dark:border-indigo-800/80 transition-colors cursor-pointer"
                 title={`Filtrar por carpeta: ${file.folder}`}
               >
                 <Folder className="w-2.5 h-2.5 text-indigo-500 shrink-0" />
@@ -118,7 +118,7 @@ export default function FileListItem({
         <button
           onClick={() => onPreview(file)}
           title="Visualizar archivo"
-          className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors cursor-pointer"
+          className="p-3 sm:p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors cursor-pointer"
         >
           <Eye className="w-4 h-4" />
         </button>
@@ -126,7 +126,7 @@ export default function FileListItem({
         <button
           onClick={() => onDownload(file)}
           title="Descargar archivo"
-          className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors cursor-pointer"
+          className="p-3 sm:p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors cursor-pointer"
         >
           <Download className="w-4 h-4" />
         </button>
@@ -134,7 +134,7 @@ export default function FileListItem({
         <button
           onClick={() => onMove?.(file)}
           title="Mover a otra carpeta"
-          className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors cursor-pointer"
+          className="p-3 sm:p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors cursor-pointer"
         >
           <FolderInput className="w-4 h-4" />
         </button>
@@ -142,7 +142,7 @@ export default function FileListItem({
         <button
           onClick={() => onRename(file)}
           title="Renombrar o editar nota"
-          className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+          className="p-3 sm:p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
         >
           <Edit2 className="w-4 h-4" />
         </button>
@@ -150,7 +150,7 @@ export default function FileListItem({
         <button
           onClick={() => onDelete(file)}
           title="Eliminar archivo"
-          className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors cursor-pointer"
+          className="p-3 sm:p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors cursor-pointer"
         >
           <Trash2 className="w-4 h-4" />
         </button>
