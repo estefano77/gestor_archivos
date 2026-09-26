@@ -82,11 +82,29 @@ Crea o edita el archivo `.env.local` en la raíz del proyecto:
 MONGODB_URI=mongodb://127.0.0.1:27017/gestor_archivos
 
 # Clave secreta para firmar tokens JWT (mínimo 32 caracteres)
-JWT_SECRET=super_secret_jwt_key_gestor_archivos_2026_vercel_production
+JWT_SECRET=pega_aqui_un_secreto_aleatorio_de_32_caracteres_o_mas
 
 # Nombre de la aplicación
 NEXT_PUBLIC_APP_NAME="CloudVault - Gestor de Archivos"
+
+# Credenciales de Google (opcional, solo para iniciar sesión con Google)
+GOOGLE_CLIENT_ID=tu-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=tu-client-secret
 ```
+
+> ⚠️ **Genera tu propio `JWT_SECRET`, no copies el de ejemplo.**
+>
+> Este repositorio es público, así que cualquier valor que pongas en él queda
+> comprometido. Con el secreto de firma a la vista, cualquiera puede crear un
+> token de sesión válido con el identificador de usuario que quiera y acceder a
+> los archivos de cualquier cuenta. Genera uno con:
+>
+> ```bash
+> node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
+> ```
+>
+> Al cambiar el secreto se invalidan las sesiones abiertas: los usuarios
+> tendrán que volver a iniciar sesión. No se pierde ningún archivo.
 
 ### 3. Iniciar el servidor de desarrollo
 ```bash
@@ -141,7 +159,7 @@ git push origin main
 3. Selecciona tu repositorio de GitHub.
 4. En la sección **Environment Variables**, añade:
    - `MONGODB_URI`: Tu cadena de conexión de MongoDB Atlas copiada en el Paso 1.
-   - `JWT_SECRET`: Una cadena segura aleatoria (ej: `clave_ultra_secreta_para_produccion_en_vercel_2026_xyz`).
+   - `JWT_SECRET`: Una cadena aleatoria generada por ti. **No uses ningún valor de ejemplo de este repositorio**: al ser público, permitiría a un tercero falsificar sesiones y leer los archivos de cualquier usuario. Genérala con `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`.
 5. Haz clic en **"Deploy"**. ¡Listo! En segundos tu aplicación estará en vivo con HTTPS y CDN global.
 
 ---
