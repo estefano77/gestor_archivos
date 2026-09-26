@@ -1,6 +1,6 @@
 # CloudVault • Gestor de Archivos Seguro
 
-Aplicación web moderna y robusta construida con **Next.js (App Router)**, **TypeScript**, **Tailwind CSS** y **MongoDB**, lista para desplegarse en **Vercel**. Permite subir, organizar en carpetas temáticas, previsualizar y descargar archivos con **control de acceso estricto por cada usuario**.
+Aplicación web moderna y robusta construida con **Next.js (App Router)**, **TypeScript**, **Tailwind CSS** y **MongoDB**, lista para desplegarse en **Vercel**. Permite subir, organizar en carpetas temáticas, previsualizar y descargar archivos con **control de acceso estricto por cada usuario** y una **cuota de 25 MB por cuenta**. Incluye un **manual de usuario integrado** en `/help`.
 
 ---
 
@@ -68,8 +68,11 @@ Aplicación web moderna y robusta construida con **Next.js (App Router)**, **Typ
 ## ⚙️ Configuración Local
 
 ### 1. Requisitos previos
-- Node.js v18+ o v22+
+- **Node.js 20.9 o superior.** Next.js 16 lo exige: en `node_modules/next/package.json` figura
+  `"engines": { "node": ">=20.9.0" }`. Con Node 18 la instalación falla, así que no es opcional.
 - Instancia de MongoDB (local en `mongodb://localhost:27017` o clúster gratuito en [MongoDB Atlas](https://www.mongodb.com/atlas))
+- Python 3 (opcional). Solo hace falta si vas a regenerar las capturas del manual; la
+  aplicación no lo usa. Ver la sección «🖼️ Regenerar las capturas del manual» más abajo.
 
 ### 2. Variables de Entorno
 Crea o edita el archivo `.env.local` en la raíz del proyecto:
@@ -115,6 +118,15 @@ La aplicación está lista para producción en Vercel sin configuraciones adicio
    ```text
    mongodb+srv://<usuario>:<password>@cluster0.xxxxx.mongodb.net/gestor_archivos?retryWrites=true&w=majority
    ```
+
+> ⚠️ **El clúster M0 gratuito da 512 MB de almacenamiento en total, no 512 MB por usuario.**
+> Como cada cuenta consume hasta 25 MB, el plan gratuito alcanza para unas **20 cuentas
+> llenas**. Antes de llegar a ese punto, Atlas bloquea las escrituras y la aplicación
+> empezará a fallar al subir archivos. Si necesitas más usuarios, sube al plan **Flex**
+> (5 GB) o_dimensiona el clúster desde el panel de Atlas.
+>
+> Ten en cuenta también que el M0 **no tiene backups** y está limitado a 100 operaciones por
+> segundo. Nada de lo que se borre se puede recuperar.
 
 ### Paso 2: Subir tu código a GitHub / GitLab
 ```bash
@@ -185,12 +197,38 @@ src/
 
 public/
 └── help/                       # 16 capturas de pantalla que ilustran el manual
+
+# Scripts sueltos en la raíz (no forman parte de la app)
+dbcheck.mjs                    # Volca usuarios, archivos y carpetas de la BD
+seed-help-samples.py           # Genera los 5 archivos de muestra (PDF, PNG, docx, xlsx, pptx)
+seed-help.mjs                  # Siembra la cuenta y los archivos de demostración
+seed-help-quota.mjs            # Rellena la cuota para capturar los estados de aviso/agotada
 ```
 
 > **Nota sobre `model-registry.ts`:** los modelos se registran a través de este helper en lugar
 > de `mongoose.models.X || mongoose.model(...)`. La caché de `mongoose.models` sobrevive a las
 > recargas de módulos de Next.js, por lo que al cambiar un esquema el proceso seguiría usando el
 > modelo viejo y Mongoose (modo `strict`) descartaría los campos nuevos **en silencio**.
+
+**Nota sobre el límite de 15 MB por archivo:** no es una decisión de diseño, es un tope que
+impone el almacenamiento. El binario se guarda **dentro** del documento (`fileData`), y BSON
+no admite documentos de más de 16 MB. Subir ese límite exigiría mover los binarios fuera de
+MongoDB (S3, GridFS, etc.) y cambiar el modelo de datos.
+
+### Cambiar los límites
+
+Los tres valores viven en `src/lib/file-utils.ts` y se importan desde el servidor y el
+cliente, así que no pueden quedar desincronizados:
+
+```ts
+export const MAX_FILE_SIZE = 15 * 1024 * 1024;      // tope por archivo
+export const USER_QUOTA_BYTES = 25 * 1024 * 1024;  // cuota por cuenta
+export const QUOTA_WARN_RATIO = 0.8;                // umbral del aviso en ámbar
+```
+
+El manual de `/help` lee esas mismas constantes, de modo que la documentación mostrada al
+usuario se actualiza sola al cambiar un valor. **Subir `MAX_FILE_SIZE` por encima de 15 MB
+no funciona** por el límite de BSON descrito arriba.
 
 ---
 
