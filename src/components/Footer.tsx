@@ -34,9 +34,15 @@ export default function Footer({ bare = false, className = "" }: FooterProps) {
       >
         <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">
           © <span suppressHydrationWarning>{year}</span> Desarrollado por{" "}
-          <span className="font-semibold text-slate-700 dark:text-slate-300">
+          <a
+            href="https://www.linkedin.com/in/estefano-castillo-estrada-137962169/"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Perfil de LinkedIn de Estéfano Castillo"
+            className="inline-block py-0.5 font-semibold text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 underline-offset-2 hover:underline transition-colors cursor-pointer"
+          >
             Estéfano Castillo
-          </span>
+          </a>
         </p>
       </div>
     </footer>
