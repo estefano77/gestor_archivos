@@ -37,6 +37,7 @@ Aplicación web moderna y robusta construida con **Next.js (App Router)**, **Typ
   - Selector de vista en **Cuadrícula (Grid)** o **Lista (List)**.
   - Barra de almacenamiento en tiempo real con desglose por tipo de archivo.
   - Filtro por categoría y por carpeta, buscador en vivo (nombre, nota, etiqueta o carpeta) y ordenamiento por fecha, nombre y tamaño.
+  - **Optimizado para móvil (probado en iPhone 13)**: sin desplazamiento horizontal, modales en *hoja inferior* con scroll interno y la barra de acciones siempre visible, respeto de las zonas seguras (isla dinámica e indicador de inicio), campos de 16px para evitar el zoom automático de iOS y objetivos táctiles de 40–44px.
 
 ---
 
@@ -80,6 +81,15 @@ npm run dev
 ```
 
 Abre tu navegador en [http://localhost:3000](http://localhost:3000).
+
+### 4. Probar desde el móvil (red local)
+Al arrancar, el servidor imprime una URL de red, por ejemplo `http://192.168.56.1:3000`. Ábrela en
+el móvil conectado a la misma red WiFi.
+
+`next.config.ts` ya incluye `allowedDevOrigins` con los rangos de red privados. Es necesario:
+Next 16 bloquea por defecto los recursos de desarrollo (`/_next/hmr` y los chunks del cliente)
+cuando el origen no es `localhost`. Sin esa lista el cliente **no se hidrata** y los formularios
+se envían de forma nativa, por lo que la aplicación parece no funcionar.
 
 ---
 
