@@ -17,6 +17,12 @@ import {
 } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import Footer from "@/components/Footer";
+import {
+  parseAuthMode,
+  AUTH_MODE_LOCAL_ONLY,
+  AUTH_MODE_GOOGLE_ONLY,
+  AUTH_MODE_BOTH,
+} from "@/lib/auth-config";
 
 /**
  * Botón oficial de Google. El SVG va incrustado porque el logotipo de Google
@@ -55,9 +61,16 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // El botón solo aparece si hay credenciales configuradas. El cliente se
-  // limita a una bandera pública: ni el Client ID ni el Secret salen de aquí.
-  const googleEnabled = process.env.NEXT_PUBLIC_GOOGLE_ENABLED === "true";
+  // Qué métodos de acceso están disponibles, según NEXT_PUBLIC_AUTH_MODE.
+  // El cliente solo decide qué pintar; el efecto real lo aplican las rutas.
+  const mode = parseAuthMode(process.env.NEXT_PUBLIC_AUTH_MODE);
+  const localEnabled = mode === AUTH_MODE_LOCAL_ONLY || mode === AUTH_MODE_BOTH;
+  const googleEnabled = mode === AUTH_MODE_GOOGLE_ONLY || mode === AUTH_MODE_BOTH;
+
+  // En modo «solo Google» el registro con contraseña no tiene sentido: la cuenta
+  // se crea sola la primera vez que se entra. Se oculta la pestaña y con ella el
+  // formulario entero.
+  const showRegisterTab = localEnabled;
 
   // La callback de Google vuelve a esta página con ?error=... cuando algo falla.
   // Leer la URL en un efecto es el caso correcto: la URL es un sistema externo
@@ -140,10 +153,45 @@ export default function AuthPage() {
           </p>
         </div>
 
+        {/* Modo «solo Google»: la tarjeta se reduce al botón, sin pestañas ni
+            formulario, porque la cuenta se crea sola al primer acceso. */}
+        {googleEnabled && !localEnabled ? (
+          <div className="glass-panel bg-white/95 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700/80 rounded-3xl p-6 sm:p-8 shadow-2xl">
+            <p className="text-center text-sm text-slate-600 dark:text-slate-300 mb-5">
+              Entra con tu cuenta de Google para acceder a tu bóveda.
+            </p>
+
+            <a
+              href="/api/auth/google"
+              id="btn-google"
+              className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-[0.98] transition-all shadow-sm"
+            >
+              <GoogleLogo className="w-[18px] h-[18px] shrink-0" />
+              <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                Continuar con Google
+              </span>
+            </a>
+
+            {error && (
+              <div className="mt-4 p-3 rounded-xl bg-rose-500/10 dark:bg-rose-500/15 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs">
+                {error}
+              </div>
+            )}
+
+            <p className="mt-5 text-xs text-slate-500 dark:text-slate-400 text-center">
+              La primera vez que entres se creará tu cuenta automáticamente.
+            </p>
+          </div>
+        ) : (
+          <>
         {/* Card */}
         <div className="glass-panel bg-white/95 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700/80 rounded-3xl p-6 sm:p-8 shadow-2xl">
           {/* Tabs: Login / Register */}
-          <div className="grid grid-cols-2 p-1 bg-slate-100 dark:bg-slate-950/80 rounded-2xl border border-slate-200 dark:border-slate-800 mb-6">
+          <div
+            className={`p-1 bg-slate-100 dark:bg-slate-950/80 rounded-2xl border border-slate-200 dark:border-slate-800 mb-6 ${
+              showRegisterTab ? "grid grid-cols-2" : "grid grid-cols-1"
+            }`}
+          >
             <button
               type="button"
               onClick={() => {
@@ -158,20 +206,22 @@ export default function AuthPage() {
             >
               Iniciar Sesión
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                setIsLogin(false);
-                setError(null);
-              }}
-              className={`py-3 text-xs font-bold rounded-xl transition-all cursor-pointer ${
-                !isLogin
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
-                  : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
-              }`}
-            >
-              Crear Cuenta
-            </button>
+            {showRegisterTab && (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLogin(false);
+                  setError(null);
+                }}
+                className={`py-3 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                  !isLogin
+                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                }`}
+              >
+                Crear Cuenta
+              </button>
+            )}
           </div>
 
           {/* Form */}
@@ -264,8 +314,10 @@ export default function AuthPage() {
             </button>
           </form>
 
-          {/* Inicio de sesión con Google */}
-          {googleEnabled && (
+          {/* El separador "o" solo tiene sentido si hay dos métodos a la vez.
+              En modo local puro, Google queda deshabilitado y la ventana
+              local es la única via de entrada. */}
+          {googleEnabled && localEnabled && (
             <>
               <div className="flex items-center gap-3 my-5">
                 <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
@@ -313,6 +365,8 @@ export default function AuthPage() {
             </p>
           </div>
         </div>
+          </>
+        )}
 
         {/* Feature Pills */}
         <div className="flex flex-wrap items-center justify-center gap-4 mt-6 text-xs text-slate-500 dark:text-slate-400">

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
+import { isGoogleEnabled } from "@/lib/auth-config";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,15 @@ const STATE_TTL_SECONDS = 600;
  */
 export async function GET(req: NextRequest) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
+
+  // El modo 0 deja Google fuera. La ruta se cierra igual que el botón, para
+  // que no se pueda saltar el ajuste llamando directamente al endpoint.
+  if (!isGoogleEnabled()) {
+    return NextResponse.json(
+      { error: "El inicio de sesión con Google está deshabilitado." },
+      { status: 403 }
+    );
+  }
 
   // Sin credenciales configuradas no se ofrece el botón, así que este camino
   // solo se alcanza si alguien teclea la URL a mano.

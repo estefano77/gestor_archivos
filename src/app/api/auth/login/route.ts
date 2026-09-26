@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { isLocalEnabled } from "@/lib/auth-config";
 import { connectToDatabase } from "@/lib/mongodb";
 import User from "@/models/User";
 import { signToken, AUTH_COOKIE_NAME } from "@/lib/auth";
@@ -8,6 +9,15 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
+    // El acceso con contraseña solo existe en los modos 0 y 2. Comprobado en el
+    // servidor y no solo ocultando el formulario.
+    if (!isLocalEnabled()) {
+      return NextResponse.json(
+        { error: "El acceso con contraseña está deshabilitado." },
+        { status: 403 }
+      );
+    }
+
     const { email, password } = await req.json();
 
     if (!email || !password) {

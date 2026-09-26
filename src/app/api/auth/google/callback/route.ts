@@ -11,6 +11,7 @@ import {
   type GoogleIdentity,
 } from "@/lib/google-auth";
 import { OAUTH_STATE_COOKIE } from "../route";
+import { isGoogleEnabled } from "@/lib/auth-config";
 
 export const dynamic = "force-dynamic";
 
@@ -130,6 +131,15 @@ async function responderConSesion(
 export async function GET(req: NextRequest) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+  // Si el administrador pasó a un modo sin Google, una vuelta pendiente de una
+  // pestaña ya abierta no debe poder completar el inicio de sesión.
+  if (!isGoogleEnabled()) {
+    return NextResponse.json(
+      { error: "El inicio de sesión con Google está deshabilitado." },
+      { status: 403 }
+    );
+  }
 
   if (!clientId || !clientSecret) {
     return NextResponse.json(

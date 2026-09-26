@@ -87,10 +87,46 @@ JWT_SECRET=pega_aqui_un_secreto_aleatorio_de_32_caracteres_o_mas
 # Nombre de la aplicación
 NEXT_PUBLIC_APP_NAME="CloudVault - Gestor de Archivos"
 
+# Método de acceso: 0 = solo local, 1 = solo Google, 2 = ambas
+NEXT_PUBLIC_AUTH_MODE=0
+
 # Credenciales de Google (opcional, solo para iniciar sesión con Google)
 GOOGLE_CLIENT_ID=tu-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=tu-client-secret
 ```
+
+### Modos de acceso
+
+Una sola variable, `NEXT_PUBLIC_AUTH_MODE`, decide qué métodos de autenticación
+están disponibles:
+
+| Valor | Modo | Efecto |
+|---|---|---|
+| `0` | Solo cuenta local | Correo y contraseña. Google responde **403**. |
+| `1` | Solo cuenta de Google | Solo el botón de Google. El registro y el login por contraseña responden **403**. |
+| `2` | Ambas | Los dos métodos disponibles. |
+
+Detalles que conviene conocer:
+
+- **El ajuste es real, no cosmético.** Las cuatro rutas de autenticación comprueban
+  el modo en el servidor. Ocultar el botón no bastaría, porque las rutas son
+  públicas y se podrían llamar a mano.
+- **Si no se define, se asume `0`**, el modo más restrictivo. Al desplegar en
+  Vercel, si olvidas la variable, la aplicación arranca **sin Google** en lugar
+  de con él.
+- **Un valor inválido hace fallar la aplicación** en lugar de elegir uno por
+  defecto. Si escribieras `3` queriendo restringir el acceso y la app cayera en
+  `2`, quedaría expuesto un método que creías cerrado.
+- **El prefijo `NEXT_PUBLIC_` es intencionado**: el cliente lo necesita para
+  decidir qué pintar. No contiene secretos; el efecto real lo aplican las rutas.
+- **Cambiar de modo requiere reconstruir**, porque `NEXT_PUBLIC_*` se incrusta
+  en el bundle durante el build. En Vercel, al guardar la variable hay que
+  redeploy.
+- En modo `1` la cuenta se crea sola al primer acceso con Google, así que la
+  pestaña «Crear Cuenta» se oculta. Si tienes cuentas locales ya creadas y
+  accedes con Google usando el mismo correo, entras en esa misma cuenta con
+  todos sus archivos; si ese correo no corresponde a una cuenta de Google, esas
+  cuentas locales se quedan sin acceso.
 
 > ⚠️ **Genera tu propio `JWT_SECRET`, no copies el de ejemplo.**
 >
@@ -170,7 +206,7 @@ git push origin main
 src/
 ├── app/
 │   ├── api/
-│   │   ├── auth/               # Rutas API de Registro, Login, Me y Logout
+│   │   ├── auth/               # Rutas API de Registro, Login, Me, Logout y Google
 │   │   ├── files/              # Rutas API de Listado, Subida, Streaming y Descargas
 │   │   │   ├── route.ts        # GET: listar, filtrar, buscar y ordenar | POST: subir
 │   │   │   ├── [id]/
@@ -206,6 +242,8 @@ src/
 │   ├── mongodb.ts              # Conexión persistente en caché para Serverless/Vercel
 │   ├── model-registry.ts       # Registro de modelos Mongoose seguro ante hot-reload
 │   ├── auth.ts                 # Creación y verificación de tokens JWT con jose
+│   ├── auth-config.ts          # Modos de acceso (0 local / 1 Google / 2 ambos)
+│   ├── google-auth.ts          # Verificación del id_token de Google con jose
 │   ├── file-utils.ts           # Categorías, colores, límites de tamaño/cuota y formateo
 │   └── help-content.ts         # Contenido del manual como datos (13 secciones)
 └── models/

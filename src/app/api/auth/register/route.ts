@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
+import { isLocalEnabled } from "@/lib/auth-config";
 import { connectToDatabase } from "@/lib/mongodb";
 import User from "@/models/User";
 import { signToken, AUTH_COOKIE_NAME } from "@/lib/auth";
@@ -20,6 +21,15 @@ const AVATAR_COLORS = [
 
 export async function POST(req: NextRequest) {
   try {
+    // El registro con contraseña solo existe en los modos 0 y 2. Ocultar el
+    // formulario no bastaría: esta ruta es pública y se podría llamar a mano.
+    if (!isLocalEnabled()) {
+      return NextResponse.json(
+        { error: "El registro con contraseña está deshabilitado." },
+        { status: 403 }
+      );
+    }
+
     const { name, email, password } = await req.json();
 
     if (!name || !email || !password) {
