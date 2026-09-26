@@ -293,8 +293,9 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          {/* Folder Chips Carousel / Horizontal Scroll */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+          {/* Carpetas temáticas: las fichas se envuelven en varias filas para que
+              se vean todas sin desplazamiento horizontal en ningún tamaño. */}
+          <div className="flex flex-wrap items-center gap-2 pb-2 -mx-1 px-1 select-none">
             {/* "Todas" Chip */}
             <button
               onClick={() => setSelectedFolder("all")}
@@ -346,7 +347,7 @@ export default function DashboardPage() {
               return (
                 <div
                   key={f._id}
-                  className={`group relative flex items-center gap-1.5 pl-3 pr-1.5 py-1 sm:py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all border ${
+                  className={`group relative flex items-center gap-1.5 pl-3 pr-1.5 py-1 sm:py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all border max-w-full ${
                     isSelected
                       ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/25"
                       : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-700"
@@ -354,13 +355,13 @@ export default function DashboardPage() {
                 >
                   <button
                     onClick={() => setSelectedFolder(f.name)}
-                    className="flex items-center gap-2 self-stretch cursor-pointer"
+                    className="flex items-center gap-2 self-stretch min-w-0 cursor-pointer"
                   >
                     <span
                       className="w-2.5 h-2.5 rounded-full shrink-0"
                       style={{ backgroundColor: theme.iconColor }}
                     />
-                    <span className="font-semibold">{f.name}</span>
+                    <span className="font-semibold truncate max-w-[42vw] sm:max-w-none">{f.name}</span>
                     <span
                       className={`text-[10px] px-1.5 py-0.2 rounded-full ${
                         isSelected
