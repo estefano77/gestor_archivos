@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   FolderLock,
@@ -12,6 +13,7 @@ import {
   Loader2,
   FileCheck,
   Sparkles,
+  BookOpen,
 } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import Footer from "@/components/Footer";
@@ -226,6 +228,17 @@ export default function AuthPage() {
               <Sparkles className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
               <span>Llenar datos de prueba para ingresar rápido</span>
             </button>
+
+            <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+              ¿Primera vez en CloudVault?{" "}
+              <Link
+                href="/help"
+                className="inline-flex items-center gap-1 font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                Consulta el manual de usuario
+              </Link>
+            </p>
           </div>
         </div>
 

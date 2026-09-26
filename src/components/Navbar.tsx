@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { FolderLock, LogOut, UploadCloud, User as UserIcon } from "lucide-react";
+import Link from "next/link";
+import { FolderLock, LogOut, UploadCloud, User as UserIcon, BookOpen } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 
 interface UserProfile {
@@ -63,6 +64,17 @@ export default function Navbar({
         <div className="flex items-center gap-1 sm:gap-2.5 lg:gap-3 shrink-0">
           {/* Theme Toggle Button */}
           <ThemeToggle />
+
+          {/* Ayuda: el manual de usuario es publico, no necesita sesion */}
+          <Link
+            href="/help"
+            id="btn-help"
+            title="Manual de usuario"
+            aria-label="Manual de usuario"
+            className="p-3 sm:p-2.5 rounded-xl text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors shrink-0"
+          >
+            <BookOpen className="w-4 h-4" />
+          </Link>
 
           {user && (
             <>

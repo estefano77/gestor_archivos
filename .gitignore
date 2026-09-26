@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# archivos de muestra que genera seed-help-samples.py para las capturas del manual
+/.help-samples/
