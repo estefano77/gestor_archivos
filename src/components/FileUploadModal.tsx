@@ -7,6 +7,7 @@ import {
   FileText,
   Image as ImageIcon,
   FileCode2,
+  FileSpreadsheet,
   Presentation,
   CheckCircle2,
   AlertCircle,
@@ -17,29 +18,60 @@ import {
   formatBytes,
   getCategoryMeta,
   ACCEPTED_EXTENSIONS,
+  FolderItem,
 } from "@/lib/file-utils";
+import { Folder, FolderPlus } from "lucide-react";
 
 interface FileUploadModalProps {
   isOpen: boolean;
+  folders?: FolderItem[];
+  defaultFolder?: string;
   onClose: () => void;
   onUploadSuccess: () => void;
 }
 
 export default function FileUploadModal({
   isOpen,
+  folders = [],
+  defaultFolder = "",
   onClose,
   onUploadSuccess,
 }: FileUploadModalProps) {
+  if (!isOpen) return null;
+
+  return (
+    <FileUploadModalContent
+      key={defaultFolder}
+      folders={folders}
+      defaultFolder={defaultFolder}
+      onClose={onClose}
+      onUploadSuccess={onUploadSuccess}
+    />
+  );
+}
+
+function FileUploadModalContent({
+  folders = [],
+  defaultFolder = "",
+  onClose,
+  onUploadSuccess,
+}: {
+  folders?: FolderItem[];
+  defaultFolder?: string;
+  onClose: () => void;
+  onUploadSuccess: () => void;
+}) {
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
+  const [selectedFolder, setSelectedFolder] = useState(defaultFolder);
+  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  if (!isOpen) return null;
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -56,7 +88,7 @@ export default function FileUploadModal({
     const category = getFileCategory(file.type, file.name);
     if (category === "other") {
       setError(
-        "Formato no admitido. Selecciona un archivo PDF, imagen, Word (.doc/.docx) o PowerPoint (.ppt/.pptx)."
+        "Formato no admitido. Selecciona un archivo PDF, imagen, Word (.doc/.docx), Excel (.xls/.xlsx) o PowerPoint (.ppt/.pptx)."
       );
       return;
     }
@@ -86,6 +118,9 @@ export default function FileUploadModal({
     setSelectedFile(null);
     setDescription("");
     setTags("");
+    setSelectedFolder(defaultFolder);
+    setIsCreatingFolder(false);
+    setNewFolderName("");
     setError(null);
     setSuccess(false);
     setIsUploading(false);
@@ -106,6 +141,15 @@ export default function FileUploadModal({
       return;
     }
 
+    const finalFolder = isCreatingFolder
+      ? newFolderName.trim()
+      : selectedFolder.trim();
+
+    if (isCreatingFolder && !newFolderName.trim()) {
+      setError("Por favor escribe el nombre de la nueva carpeta o desactiva la opción.");
+      return;
+    }
+
     setIsUploading(true);
     setError(null);
 
@@ -114,6 +158,7 @@ export default function FileUploadModal({
       formData.append("file", selectedFile);
       formData.append("description", description);
       formData.append("tags", tags);
+      formData.append("folder", finalFolder);
 
       const res = await fetch("/api/files", {
         method: "POST",
@@ -205,7 +250,7 @@ export default function FileUploadModal({
                 </span>
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 text-center">
-                PDF, Imágenes (PNG, JPG, SVG), Word (.docx, .doc), PowerPoint (.pptx, .ppt)
+                PDF, Imágenes (PNG, JPG, SVG), Word (.docx, .doc), Excel (.xlsx, .xls), PowerPoint (.pptx, .ppt)
               </p>
 
               {/* Badges of supported formats */}
@@ -218,6 +263,9 @@ export default function FileUploadModal({
                 </span>
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                   <FileCode2 className="w-3 h-3" /> Word
+                </span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20">
+                  <FileSpreadsheet className="w-3 h-3" /> Excel
                 </span>
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
                   <Presentation className="w-3 h-3" /> PowerPoint
@@ -237,6 +285,9 @@ export default function FileUploadModal({
                   {category === "pdf" && <FileText className="w-6 h-6" />}
                   {category === "image" && <ImageIcon className="w-6 h-6" />}
                   {category === "word" && <FileCode2 className="w-6 h-6" />}
+                  {category === "excel" && (
+                    <FileSpreadsheet className="w-6 h-6" />
+                  )}
                   {category === "powerpoint" && (
                     <Presentation className="w-6 h-6" />
                   )}
@@ -270,6 +321,65 @@ export default function FileUploadModal({
               )}
             </div>
           )}
+
+          {/* Thematic Folder Selection */}
+          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800">
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <Folder className="w-3.5 h-3.5 text-indigo-500" />
+                <span>Carpeta temática</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsCreatingFolder(!isCreatingFolder);
+                  setNewFolderName("");
+                }}
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+              >
+                {isCreatingFolder ? (
+                  "Seleccionar existente"
+                ) : (
+                  <>
+                    <FolderPlus className="w-3 h-3" />
+                    <span>+ Crear nueva carpeta</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {isCreatingFolder ? (
+              <div className="space-y-1.5 animate-in fade-in duration-150">
+                <input
+                  type="text"
+                  value={newFolderName}
+                  onChange={(e) => setNewFolderName(e.target.value)}
+                  placeholder="Nombre de la nueva carpeta (ej: Legal, Marketing)..."
+                  maxLength={60}
+                  autoFocus
+                  disabled={isUploading}
+                  className="w-full px-3 py-2 rounded-xl glass-input text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400"
+                />
+                <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                  La carpeta se creará automáticamente y quedará disponible para futuros archivos.
+                </p>
+              </div>
+            ) : (
+              <select
+                value={selectedFolder}
+                onChange={(e) => setSelectedFolder(e.target.value)}
+                disabled={isUploading}
+                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 cursor-pointer shadow-sm"
+              >
+                <option value="">📁 Sin carpeta (Archivo suelto en raíz)</option>
+                {folders.map((f) => (
+                  <option key={f._id} value={f.name}>
+                    📁 {f.name} ({f.fileCount || 0} archivos)
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
 
           {/* Description Input */}
           <div>

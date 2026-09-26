@@ -54,7 +54,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
     const { id } = await params;
     const body = await req.json();
-    const { originalName, description, tags } = body;
+    const { originalName, description, tags, folder } = body;
 
     await connectToDatabase();
 
@@ -67,6 +67,26 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     }
     if (Array.isArray(tags)) {
       updateFields.tags = tags;
+    }
+    if (typeof folder === "string") {
+      const folderName = folder.trim();
+      updateFields.folder = folderName;
+
+      // If a non-empty folder name is specified, make sure it exists in Folder collection
+      if (folderName) {
+        const Folder = (await import("@/models/Folder")).default;
+        const existing = await Folder.findOne({
+          userId: user.userId,
+          name: { $regex: new RegExp(`^${folderName}$`, "i") },
+        });
+        if (!existing) {
+          await Folder.create({
+            userId: user.userId,
+            name: folderName,
+            color: "indigo",
+          });
+        }
+      }
     }
 
     const updated = await FileItem.findOneAndUpdate(
@@ -90,6 +110,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         mimeType: updated.mimeType,
         category: updated.category,
         size: updated.size,
+        folder: updated.folder || "",
         description: updated.description,
         tags: updated.tags,
         createdAt: updated.createdAt,

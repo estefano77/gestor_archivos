@@ -10,7 +10,10 @@ import FileUploadModal from "@/components/FileUploadModal";
 import FilePreviewModal from "@/components/FilePreviewModal";
 import RenameModal from "@/components/RenameModal";
 import DeleteModal from "@/components/DeleteModal";
-import { FileMetadata } from "@/lib/file-utils";
+import FolderModal from "@/components/FolderModal";
+import MoveFileModal from "@/components/MoveFileModal";
+import DeleteFolderModal from "@/components/DeleteFolderModal";
+import { FileMetadata, FolderItem, FOLDER_COLORS } from "@/lib/file-utils";
 import {
   Search,
   LayoutGrid,
@@ -21,7 +24,10 @@ import {
   Filter,
   Loader2,
   AlertCircle,
-  Database,
+  Folder,
+  FolderPlus,
+  Settings2,
+  Trash2,
 } from "lucide-react";
 
 interface UserProfile {
@@ -51,14 +57,26 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<StatsData | null>(null);
   const [filesLoading, setFilesLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedFolder, setSelectedFolder] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOption, setSortOption] = useState<string>("newest");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+
+  // Thematic Folders state
+  const [folders, setFolders] = useState<FolderItem[]>([]);
+  const [unorganizedStats, setUnorganizedStats] = useState<{
+    fileCount: number;
+    totalBytes: number;
+  }>({ fileCount: 0, totalBytes: 0 });
+  const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
+  const [editingFolder, setEditingFolder] = useState<FolderItem | null>(null);
+  const [deleteFolderTarget, setDeleteFolderTarget] = useState<FolderItem | null>(null);
 
   // Modals state
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState<FileMetadata | null>(null);
   const [renameFile, setRenameFile] = useState<FileMetadata | null>(null);
+  const [moveFile, setMoveFile] = useState<FileMetadata | null>(null);
   const [deleteFile, setDeleteFile] = useState<FileMetadata | null>(null);
 
   // Errors & notification state
@@ -82,7 +100,23 @@ export default function DashboardPage() {
     }
   }, [router]);
 
-  // 2. Fetch files list
+  // 2. Fetch thematic folders list
+  const fetchFolders = useCallback(async () => {
+    try {
+      const res = await fetch("/api/folders");
+      if (res.ok) {
+        const data = await res.json();
+        setFolders(data.folders || []);
+        if (data.unorganized) {
+          setUnorganizedStats(data.unorganized);
+        }
+      }
+    } catch (err) {
+      console.error("Error al cargar carpetas:", err);
+    }
+  }, []);
+
+  // 3. Fetch files list
   const fetchFiles = useCallback(async () => {
     try {
       setFilesLoading(true);
@@ -91,6 +125,9 @@ export default function DashboardPage() {
       const params = new URLSearchParams();
       if (selectedCategory && selectedCategory !== "all") {
         params.append("category", selectedCategory);
+      }
+      if (selectedFolder && selectedFolder !== "all") {
+        params.append("folder", selectedFolder);
       }
       if (searchTerm.trim()) {
         params.append("search", searchTerm.trim());
@@ -116,9 +153,9 @@ export default function DashboardPage() {
     } finally {
       setFilesLoading(false);
     }
-  }, [selectedCategory, searchTerm, sortOption]);
+  }, [selectedCategory, selectedFolder, searchTerm, sortOption]);
 
-  // 3. Fetch storage stats
+  // 4. Fetch storage stats
   const fetchStats = useCallback(async () => {
     try {
       const res = await fetch("/api/files/stats");
@@ -138,9 +175,10 @@ export default function DashboardPage() {
   useEffect(() => {
     if (user) {
       fetchFiles();
+      fetchFolders();
       fetchStats();
     }
-  }, [user, fetchFiles, fetchStats]);
+  }, [user, fetchFiles, fetchFolders, fetchStats]);
 
   // Handle Logout
   const handleLogout = async () => {
@@ -228,6 +266,150 @@ export default function DashboardPage() {
           selectedCategory={selectedCategory}
         />
 
+        {/* Thematic Folders Navigation Bar */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between gap-3 mb-2.5">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                <Folder className="w-4 h-4" />
+              </div>
+              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                Carpetas Temáticas
+              </h3>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-slate-200/80 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-medium">
+                {folders.length}
+              </span>
+            </div>
+
+            <button
+              onClick={() => {
+                setEditingFolder(null);
+                setIsFolderModalOpen(true);
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 border border-indigo-200/80 dark:border-indigo-800/80 transition-all cursor-pointer shadow-sm"
+            >
+              <FolderPlus className="w-3.5 h-3.5" />
+              <span>Nueva Carpeta</span>
+            </button>
+          </div>
+
+          {/* Folder Chips Carousel / Horizontal Scroll */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+            {/* "Todas" Chip */}
+            <button
+              onClick={() => setSelectedFolder("all")}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                selectedFolder === "all"
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                  : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-indigo-300 dark:hover:border-indigo-700"
+              }`}
+            >
+              <span>📁 Todas</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                  selectedFolder === "all"
+                    ? "bg-white/20 text-white"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-500"
+                }`}
+              >
+                {files.length}
+              </span>
+            </button>
+
+            {/* "Sin carpeta" Chip */}
+            <button
+              onClick={() => setSelectedFolder("none")}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                selectedFolder === "none"
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                  : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-indigo-300 dark:hover:border-indigo-700"
+              }`}
+            >
+              <span>📂 Sin carpeta</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                  selectedFolder === "none"
+                    ? "bg-white/20 text-white"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-500"
+                }`}
+              >
+                {unorganizedStats.fileCount}
+              </span>
+            </button>
+
+            {/* User Custom Thematic Folders */}
+            {folders.map((f) => {
+              const theme =
+                FOLDER_COLORS[f.color || "indigo"] || FOLDER_COLORS.indigo;
+              const isSelected = selectedFolder === f.name;
+
+              return (
+                <div
+                  key={f._id}
+                  className={`group relative flex items-center gap-1.5 pl-3 pr-2 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all border ${
+                    isSelected
+                      ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/25"
+                      : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-700"
+                  }`}
+                >
+                  <button
+                    onClick={() => setSelectedFolder(f.name)}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <span
+                      className="w-2.5 h-2.5 rounded-full shrink-0"
+                      style={{ backgroundColor: theme.iconColor }}
+                    />
+                    <span className="font-semibold">{f.name}</span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                        isSelected
+                          ? "bg-white/20 text-white"
+                          : "bg-slate-100 dark:bg-slate-800 text-slate-500"
+                      }`}
+                    >
+                      {f.fileCount || 0}
+                    </span>
+                  </button>
+
+                  {/* Settings / Edit Folder button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingFolder(f);
+                      setIsFolderModalOpen(true);
+                    }}
+                    title="Editar carpeta"
+                    className={`p-1 rounded-lg transition-colors cursor-pointer ${
+                      isSelected
+                        ? "text-white/80 hover:text-white hover:bg-white/20"
+                        : "text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    <Settings2 className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* Direct Delete Folder button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleteFolderTarget(f);
+                    }}
+                    title="Eliminar carpeta y todo su contenido"
+                    className={`p-1 rounded-lg transition-colors cursor-pointer ${
+                      isSelected
+                        ? "text-rose-200 hover:text-white hover:bg-rose-500/40"
+                        : "text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10"
+                    }`}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Toolbar: Search, Filters, View Modes */}
         <div className="glass-panel p-4 rounded-2xl mb-6 border border-slate-200/80 dark:border-slate-800/80 flex flex-col md:flex-row items-center justify-between gap-4">
           {/* Search bar */}
@@ -237,13 +419,31 @@ export default function DashboardPage() {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar por nombre, nota o etiqueta..."
+              placeholder="Buscar por nombre, nota, etiqueta o carpeta..."
               className="w-full pl-10 pr-4 py-2 rounded-xl glass-input text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
             />
           </div>
 
           {/* Right Toolbar Controls */}
           <div className="flex flex-wrap items-center justify-between md:justify-end gap-3 w-full md:w-auto">
+            {/* Folder Select Dropdown */}
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+              <Folder className="w-3.5 h-3.5" />
+              <select
+                value={selectedFolder}
+                onChange={(e) => setSelectedFolder(e.target.value)}
+                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 py-1.5 px-2.5 rounded-xl text-xs focus:outline-none focus:border-indigo-500 cursor-pointer shadow-sm max-w-[150px] truncate"
+              >
+                <option value="all">Todas las carpetas</option>
+                <option value="none">Sin carpeta ({unorganizedStats.fileCount})</option>
+                {folders.map((f) => (
+                  <option key={f._id} value={f.name}>
+                    📁 {f.name} ({f.fileCount || 0})
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Category Select Dropdown */}
             <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
               <Filter className="w-3.5 h-3.5" />
@@ -256,6 +456,7 @@ export default function DashboardPage() {
                 <option value="pdf">Solo PDFs</option>
                 <option value="image">Solo Imágenes</option>
                 <option value="word">Solo Word</option>
+                <option value="excel">Solo Excel</option>
                 <option value="powerpoint">Solo PowerPoint</option>
               </select>
             </div>
@@ -324,7 +525,7 @@ export default function DashboardPage() {
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-md">
               {searchTerm || selectedCategory !== "all"
                 ? "Intenta modificar tu búsqueda o seleccionar otra categoría."
-                : "Comienza a subir tus documentos en PDF, imágenes, archivos de Word (.doc, .docx) o presentaciones de PowerPoint (.ppt, .pptx)."}
+                : "Comienza a subir tus documentos en PDF, imágenes, archivos de Word (.doc, .docx), hojas de cálculo de Excel (.xls, .xlsx) o presentaciones de PowerPoint (.ppt, .pptx)."}
             </p>
             <button
               onClick={() => setIsUploadOpen(true)}
@@ -345,6 +546,8 @@ export default function DashboardPage() {
                 onDownload={handleDownload}
                 onRename={(f) => setRenameFile(f)}
                 onDelete={(f) => setDeleteFile(f)}
+                onMove={(f) => setMoveFile(f)}
+                onSelectFolder={(folderName) => setSelectedFolder(folderName)}
               />
             ))}
           </div>
@@ -359,6 +562,8 @@ export default function DashboardPage() {
                 onDownload={handleDownload}
                 onRename={(f) => setRenameFile(f)}
                 onDelete={(f) => setDeleteFile(f)}
+                onMove={(f) => setMoveFile(f)}
+                onSelectFolder={(folderName) => setSelectedFolder(folderName)}
               />
             ))}
           </div>
@@ -368,9 +573,16 @@ export default function DashboardPage() {
       {/* Modals */}
       <FileUploadModal
         isOpen={isUploadOpen}
+        folders={folders}
+        defaultFolder={
+          selectedFolder !== "all" && selectedFolder !== "none"
+            ? selectedFolder
+            : ""
+        }
         onClose={() => setIsUploadOpen(false)}
         onUploadSuccess={() => {
           fetchFiles();
+          fetchFolders();
           fetchStats();
         }}
       />
@@ -384,10 +596,66 @@ export default function DashboardPage() {
 
       <RenameModal
         file={renameFile}
+        folders={folders}
         isOpen={!!renameFile}
         onClose={() => setRenameFile(null)}
         onSuccess={() => {
           fetchFiles();
+          fetchFolders();
+        }}
+      />
+
+      <MoveFileModal
+        file={moveFile}
+        folders={folders}
+        isOpen={!!moveFile}
+        onClose={() => setMoveFile(null)}
+        onSuccess={(targetFolder: string) => {
+          // Switch filter to show the file in its new location
+          if (targetFolder) {
+            setSelectedFolder(targetFolder);
+          } else {
+            // Moved to "Sin carpeta" → show all or unorganized
+            setSelectedFolder("none");
+          }
+          fetchFiles();
+          fetchFolders();
+        }}
+      />
+
+      <FolderModal
+        isOpen={isFolderModalOpen}
+        folder={editingFolder}
+        onClose={() => {
+          setIsFolderModalOpen(false);
+          setEditingFolder(null);
+        }}
+        onSuccess={() => {
+          fetchFolders();
+          fetchFiles();
+          fetchStats();
+        }}
+      />
+
+      <DeleteFolderModal
+        folder={deleteFolderTarget}
+        isOpen={!!deleteFolderTarget}
+        onClose={() => setDeleteFolderTarget(null)}
+        onConfirm={async () => {
+          if (!deleteFolderTarget) return;
+          const res = await fetch(`/api/folders/${deleteFolderTarget._id}`, {
+            method: "DELETE",
+          });
+          if (!res.ok) {
+            const data = await res.json();
+            throw new Error(data.error || "Error al eliminar carpeta");
+          }
+          if (selectedFolder === deleteFolderTarget.name) {
+            setSelectedFolder("all");
+          }
+          fetchFiles();
+          fetchFolders();
+          fetchStats();
         }}
       />
 

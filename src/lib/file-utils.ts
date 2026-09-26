@@ -1,4 +1,10 @@
-export type FileCategory = "pdf" | "image" | "word" | "powerpoint" | "other";
+export type FileCategory =
+  | "pdf"
+  | "image"
+  | "word"
+  | "excel"
+  | "powerpoint"
+  | "other";
 
 export interface FileMetadata {
   _id: string;
@@ -6,11 +12,67 @@ export interface FileMetadata {
   mimeType: string;
   category: FileCategory;
   size: number;
+  folder?: string;
   description?: string;
   tags?: string[];
   createdAt: string;
   updatedAt: string;
 }
+
+export interface FolderItem {
+  _id: string;
+  name: string;
+  color?: string;
+  description?: string;
+  fileCount?: number;
+  totalBytes?: number;
+  createdAt: string;
+}
+
+export const FOLDER_COLORS: Record<string, { bg: string; text: string; border: string; badge: string; iconColor: string }> = {
+  indigo: {
+    bg: "bg-indigo-500/10 dark:bg-indigo-500/20",
+    text: "text-indigo-600 dark:text-indigo-400",
+    border: "border-indigo-500/30",
+    badge: "bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30",
+    iconColor: "#6366f1",
+  },
+  emerald: {
+    bg: "bg-emerald-500/10 dark:bg-emerald-500/20",
+    text: "text-emerald-600 dark:text-emerald-400",
+    border: "border-emerald-500/30",
+    badge: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
+    iconColor: "#10b981",
+  },
+  amber: {
+    bg: "bg-amber-500/10 dark:bg-amber-500/20",
+    text: "text-amber-600 dark:text-amber-400",
+    border: "border-amber-500/30",
+    badge: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30",
+    iconColor: "#f59e0b",
+  },
+  rose: {
+    bg: "bg-rose-500/10 dark:bg-rose-500/20",
+    text: "text-rose-600 dark:text-rose-400",
+    border: "border-rose-500/30",
+    badge: "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30",
+    iconColor: "#f43f5e",
+  },
+  purple: {
+    bg: "bg-purple-500/10 dark:bg-purple-500/20",
+    text: "text-purple-600 dark:text-purple-400",
+    border: "border-purple-500/30",
+    badge: "bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30",
+    iconColor: "#a855f7",
+  },
+  sky: {
+    bg: "bg-sky-500/10 dark:bg-sky-500/20",
+    text: "text-sky-600 dark:text-sky-400",
+    border: "border-sky-500/30",
+    badge: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30",
+    iconColor: "#0ea5e9",
+  },
+};
 
 /**
  * Detects file category based on MIME type and extension
@@ -53,6 +115,16 @@ export function getFileCategory(mimeType: string, filename: string): FileCategor
     lowerName.endsWith(".ppt")
   ) {
     return "powerpoint";
+  }
+
+  if (
+    lowerMime === "application/vnd.ms-excel" ||
+    lowerMime ===
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+    lowerName.endsWith(".xlsx") ||
+    lowerName.endsWith(".xls")
+  ) {
+    return "excel";
   }
 
   return "other";
@@ -111,6 +183,15 @@ export function getCategoryMeta(category: FileCategory) {
         cardBorder: "hover:border-amber-500/40",
         gradient: "from-amber-500/20 to-orange-500/10",
       };
+    case "excel":
+      return {
+        label: "Excel",
+        badgeBg: "bg-green-500/10 text-green-500 border-green-500/20",
+        badgeSolid: "bg-green-600 text-white",
+        iconColor: "text-green-500",
+        cardBorder: "hover:border-green-500/40",
+        gradient: "from-green-500/20 to-lime-500/10",
+      };
     default:
       return {
         label: "Archivo",
@@ -127,4 +208,4 @@ export function getCategoryMeta(category: FileCategory) {
  * Accepted extensions string for file inputs
  */
 export const ACCEPTED_EXTENSIONS =
-  ".pdf,.png,.jpg,.jpeg,.gif,.webp,.svg,.doc,.docx,.ppt,.pptx";
+  ".pdf,.png,.jpg,.jpeg,.gif,.webp,.svg,.doc,.docx,.xls,.xlsx,.ppt,.pptx";

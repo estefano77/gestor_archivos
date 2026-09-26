@@ -87,7 +87,7 @@ export default function AuthPage() {
             CloudVault
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1.5">
-            Gestor de Archivos Seguro • PDF, Imágenes, Word y PowerPoint
+            Gestor de Archivos Seguro • PDF, Imágenes, Word, Excel y PowerPoint
           </p>
         </div>
 

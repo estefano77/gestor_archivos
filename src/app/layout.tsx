@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "CloudVault • Gestor de Archivos Seguro",
   description:
-    "Sube, organiza, visualiza y gestiona tus documentos PDF, imágenes, archivos de Word y PowerPoint con control de acceso por usuario y base de datos MongoDB.",
+    "Sube, organiza, visualiza y gestiona tus documentos PDF, imágenes, archivos de Word, hojas de cálculo de Excel y presentaciones de PowerPoint con control de acceso por usuario y base de datos MongoDB.",
 };
 
 export default function RootLayout({

@@ -12,41 +12,41 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+function applyThemeToDocument(newTheme: Theme) {
+  if (typeof document === "undefined") return;
+  const root = document.documentElement;
+  if (newTheme === "dark") {
+    root.classList.add("dark");
+    root.classList.remove("light");
+    root.style.colorScheme = "dark";
+  } else {
+    root.classList.remove("dark");
+    root.classList.add("light");
+    root.style.colorScheme = "light";
+  }
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("dark");
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("cloudvault_theme") as Theme | null;
+    let effective: Theme = "dark";
     if (savedTheme === "light" || savedTheme === "dark") {
-      setThemeState(savedTheme);
-      applyTheme(savedTheme);
-    } else {
+      effective = savedTheme;
+    } else if (typeof window !== "undefined") {
       const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      const initial = prefersDark ? "dark" : "light";
-      setThemeState(initial);
-      applyTheme(initial);
+      effective = prefersDark ? "dark" : "light";
     }
-    setMounted(true);
+    applyThemeToDocument(effective);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setThemeState(effective);
   }, []);
-
-  const applyTheme = (newTheme: Theme) => {
-    const root = document.documentElement;
-    if (newTheme === "dark") {
-      root.classList.add("dark");
-      root.classList.remove("light");
-      root.style.colorScheme = "dark";
-    } else {
-      root.classList.remove("dark");
-      root.classList.add("light");
-      root.style.colorScheme = "light";
-    }
-  };
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
     localStorage.setItem("cloudvault_theme", newTheme);
-    applyTheme(newTheme);
+    applyThemeToDocument(newTheme);
   };
 
   const toggleTheme = () => {

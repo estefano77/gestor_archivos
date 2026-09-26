@@ -9,6 +9,7 @@ import {
   FileText,
   Image as ImageIcon,
   FileCode2,
+  FileSpreadsheet,
   Presentation,
   ZoomIn,
   ZoomOut,
@@ -59,6 +60,9 @@ export default function FilePreviewModal({
               {file.category === "pdf" && <FileText className="w-5 h-5" />}
               {file.category === "image" && <ImageIcon className="w-5 h-5" />}
               {file.category === "word" && <FileCode2 className="w-5 h-5" />}
+              {file.category === "excel" && (
+                <FileSpreadsheet className="w-5 h-5" />
+              )}
               {file.category === "powerpoint" && (
                 <Presentation className="w-5 h-5" />
               )}
@@ -168,15 +172,19 @@ export default function FilePreviewModal({
             </div>
           )}
 
-          {/* 3. Word & PowerPoint: Visual Inspector Card */}
-          {(file.category === "word" || file.category === "powerpoint") && (
+          {/* 3. Word, Excel & PowerPoint: Visual Inspector Card */}
+          {(file.category === "word" ||
+            file.category === "excel" ||
+            file.category === "powerpoint") && (
             <div className="max-w-md w-full glass-card p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 text-center flex flex-col items-center shadow-2xl">
               <div
                 className={`w-20 h-20 rounded-3xl flex items-center justify-center text-white mb-4 shadow-xl ${meta.badgeSolid}`}
               >
-                {file.category === "word" ? (
-                  <FileCode2 className="w-10 h-10" />
-                ) : (
+                {file.category === "word" && <FileCode2 className="w-10 h-10" />}
+                {file.category === "excel" && (
+                  <FileSpreadsheet className="w-10 h-10" />
+                )}
+                {file.category === "powerpoint" && (
                   <Presentation className="w-10 h-10" />
                 )}
               </div>
@@ -184,7 +192,9 @@ export default function FilePreviewModal({
               <span
                 className={`text-xs uppercase font-extrabold px-2.5 py-1 rounded-full border mb-2 ${meta.badgeBg}`}
               >
-                Documento de Microsoft {meta.label}
+                {file.category === "excel"
+                  ? "Hoja de cálculo de Microsoft Excel"
+                  : `Documento de Microsoft ${meta.label}`}
               </span>
 
               <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 break-all mb-1">

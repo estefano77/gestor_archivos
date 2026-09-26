@@ -6,12 +6,15 @@ import {
   FileText,
   Image as ImageIcon,
   FileCode2,
+  FileSpreadsheet,
   Presentation,
   Download,
   Eye,
   Trash2,
   Edit2,
   Calendar,
+  Folder,
+  FolderInput,
 } from "lucide-react";
 
 interface FileListItemProps {
@@ -20,6 +23,8 @@ interface FileListItemProps {
   onDownload: (file: FileMetadata) => void;
   onDelete: (file: FileMetadata) => void;
   onRename: (file: FileMetadata) => void;
+  onMove?: (file: FileMetadata) => void;
+  onSelectFolder?: (folder: string) => void;
 }
 
 export default function FileListItem({
@@ -28,6 +33,8 @@ export default function FileListItem({
   onDownload,
   onDelete,
   onRename,
+  onMove,
+  onSelectFolder,
 }: FileListItemProps) {
   const meta = getCategoryMeta(file.category);
 
@@ -48,13 +55,16 @@ export default function FileListItem({
           {file.category === "pdf" && <FileText className="w-5 h-5" />}
           {file.category === "image" && <ImageIcon className="w-5 h-5" />}
           {file.category === "word" && <FileCode2 className="w-5 h-5" />}
+          {file.category === "excel" && (
+            <FileSpreadsheet className="w-5 h-5" />
+          )}
           {file.category === "powerpoint" && (
             <Presentation className="w-5 h-5" />
           )}
         </div>
 
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h4
               onClick={() => onPreview(file)}
               className="text-sm font-semibold text-slate-800 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer truncate max-w-[200px] sm:max-w-xs md:max-w-md"
@@ -66,6 +76,20 @@ export default function FileListItem({
             >
               {meta.label}
             </span>
+            {file.folder && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelectFolder?.(file.folder!);
+                }}
+                className="inline-flex items-center gap-1 text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50/90 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 px-1.5 py-0.5 rounded-md border border-indigo-200/80 dark:border-indigo-800/80 transition-colors cursor-pointer"
+                title={`Filtrar por carpeta: ${file.folder}`}
+              >
+                <Folder className="w-2.5 h-2.5 text-indigo-500 shrink-0" />
+                <span className="truncate max-w-[120px]">{file.folder}</span>
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -105,6 +129,14 @@ export default function FileListItem({
           className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors cursor-pointer"
         >
           <Download className="w-4 h-4" />
+        </button>
+
+        <button
+          onClick={() => onMove?.(file)}
+          title="Mover a otra carpeta"
+          className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors cursor-pointer"
+        >
+          <FolderInput className="w-4 h-4" />
         </button>
 
         <button

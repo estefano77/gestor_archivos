@@ -10,6 +10,7 @@ import {
   FileText,
   Image as ImageIcon,
   FileCode2,
+  FileSpreadsheet,
   Presentation,
   Download,
   Eye,
@@ -17,6 +18,7 @@ import {
   Edit2,
   Calendar,
   MoreVertical,
+  Folder,
 } from "lucide-react";
 
 interface FileCardProps {
@@ -25,6 +27,8 @@ interface FileCardProps {
   onDownload: (file: FileMetadata) => void;
   onDelete: (file: FileMetadata) => void;
   onRename: (file: FileMetadata) => void;
+  onMove?: (file: FileMetadata) => void;
+  onSelectFolder?: (folder: string) => void;
 }
 
 export default function FileCard({
@@ -33,6 +37,8 @@ export default function FileCard({
   onDownload,
   onDelete,
   onRename,
+  onMove,
+  onSelectFolder,
 }: FileCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const meta = getCategoryMeta(file.category);
@@ -53,6 +59,9 @@ export default function FileCard({
           {file.category === "pdf" && <FileText className="w-3.5 h-3.5" />}
           {file.category === "image" && <ImageIcon className="w-3.5 h-3.5" />}
           {file.category === "word" && <FileCode2 className="w-3.5 h-3.5" />}
+          {file.category === "excel" && (
+            <FileSpreadsheet className="w-3.5 h-3.5" />
+          )}
           {file.category === "powerpoint" && (
             <Presentation className="w-3.5 h-3.5" />
           )}
@@ -74,7 +83,17 @@ export default function FileCard({
                 className="fixed inset-0 z-20"
                 onClick={() => setMenuOpen(false)}
               />
-              <div className="absolute right-0 top-full mt-1 w-36 glass-panel bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-30 py-1.5 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+              <div className="absolute right-0 top-full mt-1 w-44 glass-panel bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-30 py-1.5 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                <button
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onMove?.(file);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left cursor-pointer"
+                >
+                  <Folder className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                  <span>Mover a carpeta</span>
+                </button>
                 <button
                   onClick={() => {
                     setMenuOpen(false);
@@ -83,7 +102,7 @@ export default function FileCard({
                   className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left cursor-pointer"
                 >
                   <Edit2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-                  <span>Renombrar</span>
+                  <span>Editar / Renombrar</span>
                 </button>
                 <button
                   onClick={() => {
@@ -121,6 +140,9 @@ export default function FileCard({
             >
               {file.category === "pdf" && <FileText className="w-7 h-7" />}
               {file.category === "word" && <FileCode2 className="w-7 h-7" />}
+              {file.category === "excel" && (
+                <FileSpreadsheet className="w-7 h-7" />
+              )}
               {file.category === "powerpoint" && (
                 <Presentation className="w-7 h-7" />
               )}
@@ -149,8 +171,25 @@ export default function FileCard({
           {file.originalName}
         </h4>
 
+        {file.folder && (
+          <div className="mt-1">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectFolder?.(file.folder!);
+              }}
+              className="inline-flex items-center gap-1 text-[11px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50/80 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 px-2 py-0.5 rounded-md border border-indigo-200/80 dark:border-indigo-800/80 transition-colors cursor-pointer"
+              title={`Filtrar por carpeta: ${file.folder}`}
+            >
+              <Folder className="w-3 h-3 text-indigo-500 shrink-0" />
+              <span className="truncate max-w-[150px]">{file.folder}</span>
+            </button>
+          </div>
+        )}
+
         {file.description && (
-          <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
+          <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-1">
             {file.description}
           </p>
         )}

@@ -6,6 +6,7 @@ import {
   FileText,
   Image as ImageIcon,
   FileCode2,
+  FileSpreadsheet,
   Presentation,
   HardDrive,
   Files,
@@ -38,6 +39,7 @@ export default function StorageStats({
   const pdfPercent = totalBytes > 0 ? ((byCategory.pdf?.bytes || 0) / totalBytes) * 100 : 0;
   const imgPercent = totalBytes > 0 ? ((byCategory.image?.bytes || 0) / totalBytes) * 100 : 0;
   const wordPercent = totalBytes > 0 ? ((byCategory.word?.bytes || 0) / totalBytes) * 100 : 0;
+  const excelPercent = totalBytes > 0 ? ((byCategory.excel?.bytes || 0) / totalBytes) * 100 : 0;
   const pptPercent = totalBytes > 0 ? ((byCategory.powerpoint?.bytes || 0) / totalBytes) * 100 : 0;
 
   return (
@@ -92,6 +94,13 @@ export default function StorageStats({
             className="h-full bg-blue-500 transition-all duration-500 first:rounded-l-full last:rounded-r-full"
           />
         )}
+        {excelPercent > 0 && (
+          <div
+            title={`Excel: ${formatBytes(byCategory.excel?.bytes || 0)}`}
+            style={{ width: `${excelPercent}%` }}
+            className="h-full bg-green-500 transition-all duration-500 first:rounded-l-full last:rounded-r-full"
+          />
+        )}
         {pptPercent > 0 && (
           <div
             title={`PowerPoint: ${formatBytes(byCategory.powerpoint?.bytes || 0)}`}
@@ -107,7 +116,7 @@ export default function StorageStats({
       </div>
 
       {/* Interactive Category Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {/* All Files */}
         <button
           onClick={() => onFilterCategory?.("all")}
@@ -202,6 +211,26 @@ export default function StorageStats({
             <div className="text-xs text-slate-500 dark:text-slate-400">PowerPoint</div>
             <div className="text-sm font-bold text-slate-900 dark:text-slate-100">
               {byCategory.powerpoint?.count || 0}
+            </div>
+          </div>
+        </button>
+
+        {/* Excel */}
+        <button
+          onClick={() => onFilterCategory?.("excel")}
+          className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-all cursor-pointer ${
+            selectedCategory === "excel"
+              ? "bg-green-50 dark:bg-green-500/15 border-green-500/50 shadow-md shadow-green-500/10"
+              : "bg-white/70 dark:bg-slate-900/50 border-slate-200/90 dark:border-slate-800/60 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm"
+          }`}
+        >
+          <div className="p-2 rounded-lg bg-green-500/15 dark:bg-green-500/20 text-green-600 dark:text-green-400">
+            <FileSpreadsheet className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="text-xs text-slate-500 dark:text-slate-400">Excel</div>
+            <div className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              {byCategory.excel?.count || 0}
             </div>
           </div>
         </button>

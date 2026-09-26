@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
+import { getOrRegisterModel } from "@/lib/model-registry";
 
 export interface IUser extends Document {
   _id: mongoose.Types.ObjectId;
@@ -50,8 +51,7 @@ const UserSchema = new Schema<IUser>(
   }
 );
 
-// Prevent mongoose model overwrite error during Next.js hot reloading
-const User: Model<IUser> =
-  mongoose.models.User || mongoose.model<IUser>("User", UserSchema);
+// Registro seguro ante el hot-reload de Next.js (ver src/lib/model-registry.ts)
+const User: Model<IUser> = getOrRegisterModel<IUser>("User", UserSchema);
 
 export default User;

@@ -35,6 +35,7 @@ export async function GET(req: NextRequest) {
       pdf: { bytes: 0, count: 0 },
       image: { bytes: 0, count: 0 },
       word: { bytes: 0, count: 0 },
+      excel: { bytes: 0, count: 0 },
       powerpoint: { bytes: 0, count: 0 },
       other: { bytes: 0, count: 0 },
     };

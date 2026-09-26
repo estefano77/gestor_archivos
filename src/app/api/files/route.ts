@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getRequestUser } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongodb";
 import FileItem from "@/models/FileItem";
+import Folder from "@/models/Folder";
 import { getFileCategory, FileCategory } from "@/lib/file-utils";
 
 export const dynamic = "force-dynamic";
@@ -20,6 +21,7 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const category = searchParams.get("category");
+    const folder = searchParams.get("folder");
     const search = searchParams.get("search");
     const sort = searchParams.get("sort") || "newest";
 
@@ -30,9 +32,32 @@ export async function GET(req: NextRequest) {
       query.category = category as FileCategory;
     }
 
+    if (folder && folder !== "all") {
+      if (folder === "none" || folder === "unorganized") {
+        query.$or = [
+          { folder: "" },
+          { folder: { $exists: false } },
+          { folder: null },
+        ];
+      } else {
+        query.folder = folder;
+      }
+    }
+
     if (search && search.trim() !== "") {
       const regex = new RegExp(search.trim(), "i");
-      query.$or = [{ originalName: regex }, { tags: regex }, { description: regex }];
+      const searchConditions: Record<string, unknown>[] = [
+        { originalName: regex },
+        { tags: regex },
+        { description: regex },
+        { folder: regex },
+      ];
+      if (query.$or) {
+        query.$and = [{ $or: query.$or }, { $or: searchConditions }];
+        delete query.$or;
+      } else {
+        query.$or = searchConditions;
+      }
     }
 
     let sortOptions: Record<string, 1 | -1> = { createdAt: -1 };
@@ -54,6 +79,7 @@ export async function GET(req: NextRequest) {
         mimeType: f.mimeType,
         category: f.category,
         size: f.size,
+        folder: f.folder || "",
         description: f.description,
         tags: f.tags,
         createdAt: f.createdAt,
@@ -80,6 +106,7 @@ export async function POST(req: NextRequest) {
     const file = formData.get("file") as File | null;
     const description = (formData.get("description") as string) || "";
     const tagsRaw = (formData.get("tags") as string) || "";
+    const folderRaw = (formData.get("folder") as string) || "";
 
     if (!file) {
       return NextResponse.json(
@@ -102,18 +129,19 @@ export async function POST(req: NextRequest) {
 
     const category = getFileCategory(file.type, file.name);
 
-    // Verify allowed types: PDF, Images, Word, PowerPoint
+    // Verify allowed types: PDF, Images, Word, Excel, PowerPoint
     const allowedCategories: FileCategory[] = [
       "pdf",
       "image",
       "word",
+      "excel",
       "powerpoint",
     ];
     if (!allowedCategories.includes(category)) {
       return NextResponse.json(
         {
           error:
-            "Formato no permitido. Solo se aceptan archivos PDF, imágenes, Word (.doc, .docx) y PowerPoint (.ppt, .pptx).",
+            "Formato no permitido. Solo se aceptan archivos PDF, imágenes, Word (.doc, .docx), Excel (.xls, .xlsx) y PowerPoint (.ppt, .pptx).",
         },
         { status: 400 }
       );
@@ -131,12 +159,31 @@ export async function POST(req: NextRequest) {
           .filter(Boolean)
       : [];
 
+    const folderName = folderRaw.trim();
+
+    // If a folder name was provided, ensure it exists in Folder collection
+    if (folderName) {
+      const existingFolder = await Folder.findOne({
+        userId: user.userId,
+        name: { $regex: new RegExp(`^${folderName}$`, "i") },
+      });
+      if (!existingFolder) {
+        await Folder.create({
+          userId: user.userId,
+          name: folderName,
+          color: "indigo",
+        });
+      }
+    }
+
     const newFile = await FileItem.create({
       userId: user.userId,
       originalName: file.name,
       mimeType: file.type || "application/octet-stream",
       category,
       size: file.size,
+      // Always store folder explicitly (even as empty string) to avoid UNDEFINED in MongoDB
+      folder: folderName || "",
       fileData: buffer,
       description: description.trim(),
       tags,
@@ -151,6 +198,7 @@ export async function POST(req: NextRequest) {
           mimeType: newFile.mimeType,
           category: newFile.category,
           size: newFile.size,
+          folder: newFile.folder || "",
           description: newFile.description,
           tags: newFile.tags,
           createdAt: newFile.createdAt,

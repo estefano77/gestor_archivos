@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 import { FileCategory } from "@/lib/file-utils";
+import { getOrRegisterModel } from "@/lib/model-registry";
 
 export interface IFileItem extends Document {
   _id: mongoose.Types.ObjectId;
@@ -8,6 +9,7 @@ export interface IFileItem extends Document {
   mimeType: string;
   category: FileCategory;
   size: number;
+  folder?: string;
   fileData?: Buffer;
   description?: string;
   tags?: string[];
@@ -34,13 +36,20 @@ const FileItemSchema = new Schema<IFileItem>(
     },
     category: {
       type: String,
-      enum: ["pdf", "image", "word", "powerpoint", "other"],
+      enum: ["pdf", "image", "word", "excel", "powerpoint", "other"],
       required: true,
       index: true,
     },
     size: {
       type: Number,
       required: [true, "El tamaño del archivo es obligatorio"],
+    },
+    folder: {
+      type: String,
+      trim: true,
+      required: false,
+      default: "",
+      index: true,
     },
     fileData: {
       type: Buffer,
@@ -64,9 +73,13 @@ const FileItemSchema = new Schema<IFileItem>(
 // Composite index for fast listing of user's files ordered by creation date
 FileItemSchema.index({ userId: 1, createdAt: -1 });
 FileItemSchema.index({ userId: 1, category: 1 });
+FileItemSchema.index({ userId: 1, folder: 1, createdAt: -1 });
 
-const FileItem: Model<IFileItem> =
-  mongoose.models.FileItem ||
-  mongoose.model<IFileItem>("FileItem", FileItemSchema);
+// Se registra a través del helper para que los cambios de esquema (p. ej. el campo
+// `folder`) se apliquen siempre y Mongoose no descarte datos en silencio.
+const FileItem: Model<IFileItem> = getOrRegisterModel<IFileItem>(
+  "FileItem",
+  FileItemSchema
+);
 
 export default FileItem;
