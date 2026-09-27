@@ -40,8 +40,8 @@ export default function Navbar({
     <header className="sticky top-0 z-40 w-full glass-panel border-b border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl transition-colors duration-300 pt-[env(safe-area-inset-top)]">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
         {/* Logo and Brand */}
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <div className="relative flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-pink-500 shadow-lg shadow-indigo-500/25 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
+          <div className="relative flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-pink-500 shadow-lg shadow-indigo-500/25 shrink-0">
             <FolderLock className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
           </div>
           <div className="min-w-0">
@@ -93,19 +93,19 @@ export default function Navbar({
                     : ""
                 }`}
               >
+                {/* En móvil el botón se queda solo con el icono: el texto|label
+                    comprimía el nombre del producto hasta cortarlo. El icono de
+                    subida es reconocible y el tamaño táctil no baja de 36 px. */}
                 <UploadCloud className="w-4 h-4 shrink-0" />
                 <span className="hidden sm:inline">
                   {isQuotaFull ? "Sin espacio" : "Subir Archivo"}
-                </span>
-                <span className="sm:hidden">
-                  {isQuotaFull ? "Sin espacio" : "Subir"}
                 </span>
               </button>
 
               {/* User Avatar & Info */}
               <div className="flex items-center gap-1.5 sm:gap-2.5 pl-1.5 sm:pl-3 border-l border-slate-200 dark:border-slate-800 shrink-0">
                 <div
-                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-bold text-xs text-white shadow-inner shrink-0"
+                  className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-bold text-xs text-white shadow-inner shrink-0"
                   style={{
                     backgroundColor: user.avatarColor || "#6366f1",
                   }}
