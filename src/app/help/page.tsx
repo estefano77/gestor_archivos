@@ -192,7 +192,14 @@ function Block({ block }: { block: HelpBlock }) {
     }
 
     case "image":
-      return <HelpImage src={block.src} alt={block.alt} caption={block.caption} />;
+      return (
+        <HelpImage
+          src={block.src}
+          alt={block.alt}
+          caption={block.caption}
+          maxWidth={block.maxWidth}
+        />
+      );
   }
 }
 

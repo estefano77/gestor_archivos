@@ -7,6 +7,12 @@ interface HelpImageProps {
   src: string;
   alt: string;
   caption: string;
+  /**
+   * Ancho maximo del marco, en pixeles. Se usa para las capturas verticales
+   * (la del movil): sin tope, una imagen de 390 px se estiraria al ancho del
+   * texto y se veriaBORrosa. Las apaisadas se dejan a ancho completo.
+   */
+  maxWidth?: number;
 }
 
 /**
@@ -16,7 +22,7 @@ interface HelpImageProps {
  * claro fijo: en modo oscuro siguen leyéndose como una hoja de papel y no como
  * un rectángulo negro.
  */
-export default function HelpImage({ src, alt, caption }: HelpImageProps) {
+export default function HelpImage({ src, alt, caption, maxWidth }: HelpImageProps) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -39,24 +45,29 @@ export default function HelpImage({ src, alt, caption }: HelpImageProps) {
   return (
     <>
       <figure className="my-5">
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="block w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white p-2 shadow-sm cursor-zoom-in transition-all hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-md active:scale-[0.99]"
-          aria-label={`Ampliar: ${caption}`}
+        <div
+          className={maxWidth ? "mx-auto" : undefined}
+          style={maxWidth ? { maxWidth } : undefined}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={src}
-            alt={alt}
-            loading="lazy"
-            className="w-full h-auto rounded-xl block"
-          />
-          <span className="mt-2 mb-1 flex items-center justify-center gap-1.5 text-[11px] font-medium text-slate-400">
-            <ZoomIn className="w-3.5 h-3.5" />
-            Pulsa para ampliar
-          </span>
-        </button>
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="block w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white p-2 shadow-sm cursor-zoom-in transition-all hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-md active:scale-[0.99]"
+            aria-label={`Ampliar: ${caption}`}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={src}
+              alt={alt}
+              loading="lazy"
+              className="w-full h-auto rounded-xl block"
+            />
+            <span className="mt-2 mb-1 flex items-center justify-center gap-1.5 text-[11px] font-medium text-slate-400">
+              <ZoomIn className="w-3.5 h-3.5" />
+              Pulsa para ampliar
+            </span>
+          </button>
+        </div>
         <figcaption className="mt-2 text-xs text-slate-500 dark:text-slate-400 text-center px-2">
           {caption}
         </figcaption>

@@ -31,7 +31,7 @@ export type HelpBlock = {
       title: string;
       text: string;
     }
-  | { kind: "image"; src: string; alt: string; caption: string }
+  | { kind: "image"; src: string; alt: string; caption: string; maxWidth?: number }
 );
 
 export interface HelpSection {
@@ -265,7 +265,7 @@ export const HELP_SECTIONS: HelpSection[] = [
         items: [
           `**Normal**: aparece «te quedan X MB».`,
           `**Aviso**: a partir del ${WARN_PERCENT}% el texto se pone **ámbar**.`,
-          "**Cuota completa**: el texto se pone **rojo**, la barra se llena y el botón «Subir Archivo» de la barra superior se convierte en «Sin espacio».",
+          "**Cuota completa**: el texto se pone **rojo**, la barra se llena y el botón de subir de la barra superior se pone **gris** y deja de funcionar. En el ordenador el botón además avisa con un «Sin espacio»; en el móvil, al quedar solo con su icono, se apoya en el mensaje rojo y en «Quota agotada» de la ventana de subida.",
         ],
       },
       {
@@ -279,7 +279,7 @@ export const HELP_SECTIONS: HelpSection[] = [
         src: "/help/15-cuota-agotada.png",
         alt: "Panel de almacenamiento con la cuota completamente llena",
         caption:
-          "Con la cuota llena el mensaje se pone en rojo y el botón de la barra superior dice «Sin espacio».",
+          "Con la cuota llena el mensaje se pone en rojo y el botón de la barra superior se pone gris. En el ordenador, además, dice «Sin espacio».",
       },
       {
         kind: "image",
@@ -574,8 +574,19 @@ export const HELP_SECTIONS: HelpSection[] = [
         text: "CloudVault está pensado para funcionar igual en el teléfono que en el ordenador.",
       },
       {
+        kind: "image",
+        src: "/help/18-movil-cabecera.png",
+        alt: "Panel de CloudVault en la pantalla de un iPhone, con la cabecera y el resumen de almacenamiento",
+        caption:
+          "En el móvil la cabecera se simplifica para que quepa entera: el botón de subir se queda solo con el icono de nube.",
+        // 410 px de marco dejan la imagen a 390 px, su tamaño real, para que no
+        // se vea pixelada al ampliarla.
+        maxWidth: 410,
+      },
+      {
         kind: "list",
         items: [
+          "**La barra superior se simplifica**: el botón de subir aparece solo con su icono de nube, y el nombre de CloudVault se mantiene completo. Los cuatro iconos de la derecha (tema, ayuda, subir y salir) siguen siendo los mismos.",
           "**Las ventanas suben desde abajo** como una hoja, con su propio botón de cerrar (✕).",
           "**Los botones de acción se quedan visibles** en la parte de abajo, al alcance del pulgar.",
           "**Las carpetas se reparten en varias filas**, así que no hay que deslizar el dedo en horizontal para verlas todas.",
