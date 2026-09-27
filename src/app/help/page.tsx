@@ -220,23 +220,49 @@ export default function HelpPage() {
     });
 
   // Scroll-spy: resalta en el indice la seccion que se esta leyendo.
+  //
+  // Se calcula con la posicion real de cada seccion y no con
+  // IntersectionObserver: su callback solo recibe los cambios de ese ciclo, no
+  // el estado completo, y por eso se quedaba corto o se saltaba secciones.
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-        if (visible[0]) setActiveId(visible[0].target.id);
-      },
-      { rootMargin: "-80px 0px -70% 0px", threshold: 0 }
+    const secciones = HELP_SECTIONS.map((s) => document.getElementById(s.id)).filter(
+      (el): el is HTMLElement => el !== null
     );
 
-    HELP_SECTIONS.forEach((section) => {
-      const el = document.getElementById(section.id);
-      if (el) observer.observe(el);
-    });
+    // Un poco por debajo de la cabecera fija, que ocupa 64 px.
+    const LIMITE = 120;
+    let idActual = "";
 
-    return () => observer.disconnect();
+    const calcular = () => {
+      let id = secciones[0]?.id ?? HELP_SECTIONS[0].id;
+      for (const el of secciones) {
+        if (el.getBoundingClientRect().top <= LIMITE) id = el.id;
+      }
+      if (id !== idActual) {
+        idActual = id;
+        setActiveId(id);
+      }
+    };
+
+    // Un solo calculo por fotograma como muy tarde.
+    let pendiente = 0;
+    const alDesplazar = () => {
+      if (pendiente) return;
+      pendiente = requestAnimationFrame(() => {
+        pendiente = 0;
+        calcular();
+      });
+    };
+
+    calcular();
+    window.addEventListener("scroll", alDesplazar, { passive: true });
+    window.addEventListener("resize", alDesplazar);
+
+    return () => {
+      window.removeEventListener("scroll", alDesplazar);
+      window.removeEventListener("resize", alDesplazar);
+      if (pendiente) cancelAnimationFrame(pendiente);
+    };
   }, []);
 
   return (
