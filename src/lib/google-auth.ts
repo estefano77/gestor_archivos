@@ -9,6 +9,51 @@ import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "jose";
  * sesiones.
  */
 
+/** Ruta de la callback. Es el valor que debe registrarse en Google Cloud. */
+export const GOOGLE_CALLBACK_PATH = "/api/auth/google/callback";
+
+/**
+ * Resuelve la URI de redirección de Google.
+ *
+ * Google exige que la `redirect_uri` sea **idéntica** en la petición de
+ * autorización y en el canje del código. Si cada ruta la calculara por su
+ * cuenta, un dominio con o sin `www`, o simplemente entrar por otra puerta,
+ * romperían el canje con un error confuso. Por eso las dos rutas llaman a esta
+ * misma función.
+ *
+ * Con `GOOGLE_REDIRECT_URI` en el entorno manda el valor fijo, que es lo
+ * recomendado en producción: la aplicación deja de depender de con qué host
+ * escribió el usuario la dirección. Sin esa variable se deduce de la petición,
+ * que es lo cómodo en desarrollo.
+ */
+export function resolveGoogleRedirectUri(requestUrl: string): string {
+  const configurada = process.env.GOOGLE_REDIRECT_URI?.trim();
+
+  if (!configurada) {
+    return new URL(GOOGLE_CALLBACK_PATH, requestUrl).toString();
+  }
+
+  // Se valida para que un error de tecleo aparezca al arrancar y no como un
+  // `redirect_uri_mismatch` veinte minutos después.
+  let url: URL;
+  try {
+    url = new URL(configurada);
+  } catch {
+    throw new Error(
+      `GOOGLE_REDIRECT_URI no es una URL válida: "${configurada}". ` +
+        "Debe ser algo como https://tu-dominio.com/api/auth/google/callback"
+    );
+  }
+
+  if (url.protocol !== "https:" && url.protocol !== "http:") {
+    throw new Error(
+      `GOOGLE_REDIRECT_URI debe empezar por http:// o https://, pero es "${configurada}".`
+    );
+  }
+
+  return url.toString();
+}
+
 const GOOGLE_JWKS = createRemoteJWKSet(
   new URL("https://www.googleapis.com/oauth2/v3/certs")
 );

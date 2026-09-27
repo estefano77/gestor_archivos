@@ -7,6 +7,7 @@ import { signToken, AUTH_COOKIE_NAME } from "@/lib/auth";
 import {
   verifyGoogleIdToken,
   exchangeCodeForTokens,
+  resolveGoogleRedirectUri,
   GoogleAuthError,
   type GoogleIdentity,
 } from "@/lib/google-auth";
@@ -173,7 +174,9 @@ export async function GET(req: NextRequest) {
   try {
     await connectToDatabase();
 
-    const callbackUrl = new URL("/api/auth/google/callback", req.url).toString();
+    // Debe ser la misma URI que se envió en la petición de autorización. Si
+    // difieren aunque sea en un carácter, Google rechaza el canje.
+    const callbackUrl = resolveGoogleRedirectUri(req.url);
 
     // --- 1. Canjear el código y verificar la firma del id_token ---
     const { idToken } = await exchangeCodeForTokens(

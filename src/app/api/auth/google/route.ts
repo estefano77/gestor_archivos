@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { isGoogleEnabled } from "@/lib/auth-config";
+import { resolveGoogleRedirectUri } from "@/lib/google-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -38,9 +39,10 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  // Se usa la URL de la propia petición para que la redirección funcione igual
-  // en localhost, en la red local y en producción sin configuration extra.
-  const callbackUrl = new URL("/api/auth/google/callback", req.url).toString();
+  // Google exige que esta URI sea exactamente la que esté registrada en su
+  // consola. Con GOOGLE_REDIRECT_URI en el entorno el valor es fijo; sin ella
+  // se deduce de la petición, que es lo cómodo en desarrollo.
+  const callbackUrl = resolveGoogleRedirectUri(req.url);
 
   const state = randomBytes(32).toString("base64url");
 

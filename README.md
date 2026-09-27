@@ -128,6 +128,55 @@ Detalles que conviene conocer:
   todos sus archivos; si ese correo no corresponde a una cuenta de Google, esas
   cuentas locales se quedan sin acceso.
 
+### Iniciar sesión con Google
+
+Hace falta un **ID de cliente OAuth 2.0 de tipo «Aplicación web»**, que se crea
+en Google Cloud Console → APIs y Servicios → Credenciales. Los scopes que usa la
+aplicación son `openid email profile`, que **no son sensibles**: no hace falta
+revisión de Google para publicarlo.
+
+En «URI de redirección autorizado» hay que registrar, **exactamente** y sin
+espacios alrededor, la dirección de la callback:
+
+```
+https://tu-dominio/api/auth/google/callback
+```
+
+Para no depender de con qué dirección escribió el usuario la URL, define
+`GOOGLE_REDIRECT_URI` con ese mismo valor:
+
+```env
+GOOGLE_REDIRECT_URI=https://tu-dominio/api/auth/google/callback
+```
+
+Las dos rutas del flujo, la que inicia y la callback, llaman a la misma función
+`resolveGoogleRedirectUri`, porque Google exige que la `redirect_uri` sea
+**idéntica** en la petición de autorización y en el canje del código.
+
+> #### Error `redirect_uri_mismatch`
+>
+> Es el error más habitual al montar esto, y el mensaje de Google no ayuda
+> mucho. La aplicación está bien; lo que falla es la comparación literal entre lo
+> que ella envía y lo que hay registrado en la consola.
+>
+> **La causa más frecuente:** sin `GOOGLE_REDIRECT_URI` la URI se deduce de la
+> petición. Si el usuario entra por el dominio propio pero en la consola solo
+> está el alias de Vercel (o al revés, o con `www` de por medio), las dos cadenas
+> no coinciden. **Solución:** define `GOOGLE_REDIRECT_URI` y registra ese mismo
+> valor.
+>
+> **Otras causas, por orden de frecuencia:**
+>
+> 1. **Barra final.** `.../callback/` no es lo mismo que `.../callback`.
+> 2. **Espacio o salto de línea** al pegar la URI en la consola. Escríbela a
+>    mano si dudas.
+> 3. **Otro cliente OAuth.** Si creaste más de uno, comprueba que el Client ID
+>    de tus variables sea el del cliente que estás editando.
+>
+> Para diagnosticar, abre `https://tu-dominio/api/auth/google` y mira la
+> cabecera `Location`: ahí está el `redirect_uri` exacto que envía la
+> aplicación. Compara esa cadena carácter a carácter con la de la consola.
+
 > ⚠️ **Genera tu propio `JWT_SECRET`, no copies el de ejemplo.**
 >
 > Este repositorio es público, así que cualquier valor que pongas en él queda
